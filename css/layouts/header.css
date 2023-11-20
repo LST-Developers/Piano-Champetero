@@ -1,0 +1,21 @@
+header{
+    display: flex;
+    justify-content: space-between;
+    text-align: center;
+}
+
+.ad-sup{
+    display: flex;
+    width: 100%;
+    margin-left: 1em;
+    margin-right: 1em;
+    background-color: lightgray;
+    justify-content: center;
+    align-items: center;
+}
+
+.title{
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 0;
+}

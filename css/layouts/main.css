@@ -1,0 +1,117 @@
+main{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 3em;
+}
+
+.box-principal{
+    width: 550px;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+.box-buttons{
+    
+    position: relative;
+    width: 100%;
+    height: 350px;
+}
+
+.drum-med{
+    position: absolute;
+    border-radius: 50%;
+    background-color: lightgray;
+    width: 6em;
+    height: 6em;
+    border: none;
+}
+
+.drum-big{
+    position: absolute;
+    border-radius: 50%;
+    background-color: lightgray;
+    width: 9em;
+    height: 9em;
+    border: none;
+}
+
+.ad-box-izq{
+    width: 20%;
+}
+
+.ad-box-der{
+    width: 20%;
+}
+
+.ad-izq{
+    display: flex;
+    height: 48%;
+    margin-bottom: 1em;
+    background-color: lightgray;
+    justify-content: center;
+    align-items: center;
+}
+
+.ad-der{
+    display: flex;
+    height: 48%;
+    margin-bottom: 1em;
+    background-color: lightgray;
+    justify-content: center;
+    align-items: center;
+}
+
+#bt-1{
+    top: 0;
+    left: 0;
+}
+
+#bt-2{
+    top: 7em;
+    left: 3em;
+}
+
+#bt-3{
+    top: 14em;
+    left: 6em;
+}
+
+#bt-4{
+    top: 3em;
+    left: 11em;
+}
+
+#bt-5{
+    top: 13em;
+    left: 18em;
+}
+
+#bt-6{
+    top: 3em;
+    left: 22em;
+}
+
+#bt-7{
+    top: 14em;
+    left: 27em;
+}
+
+#bt-8{
+    top: 7em;
+    left: 33em;
+}
+
+#bt-9{
+    top: 0;
+    left: 36em;
+}
+
+#volumenSlider{
+    position: absolute;
+    bottom: 0;
+    left: 16em;
+}
+
