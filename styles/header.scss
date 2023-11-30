@@ -1,12 +1,12 @@
 header{
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     text-align: center;
+    
 }
 
 .ad-sup{
     display: flex;
-    width: 100%;
     margin-left: 1em;
     margin-right: 1em;
     background-color: lightgray;
@@ -15,7 +15,8 @@ header{
 }
 
 .title{
-    width: 100%;
-    margin-top: 0;
-    margin-bottom: 0;
+    font-family: 'Seaweed Script';
+    font-size: 6em;
+    font-weight: normal;
+    margin: 1rem 0;
 }

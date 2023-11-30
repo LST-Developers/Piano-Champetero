@@ -1,0 +1,11 @@
+footer {
+  margin-top: 1em;
+}
+
+.ad-inf {
+  display: flex;
+  background-color: lightgray;
+  height: 5em;
+  justify-content: center;
+  align-items: center;
+}
