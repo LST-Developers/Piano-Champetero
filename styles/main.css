@@ -34,7 +34,7 @@ main .battery {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 50%;
+  width: 700px;
   height: auto;
   background-color: aqua;
 }
