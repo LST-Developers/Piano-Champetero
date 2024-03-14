@@ -15,7 +15,7 @@ header {
 
 .title {
   font-family: "Seaweed Script";
-  font-size: 6em;
+  font-size: 8em;
   font-weight: normal;
   margin: 1rem 0;
 }
@@ -42,6 +42,9 @@ main .battery .battery__tom {
   border: none;
   border-radius: 50%;
 }
+main .battery .battery__tom:hover {
+  background-color: red;
+}
 main .battery .battery__tom--small {
   width: 100px;
   height: 100px;
@@ -59,15 +62,6 @@ main .battery .battery__top {
   justify-content: space-between;
   background-color: blueviolet;
 }
-main .battery .battery__top #tom1 {
-  margin-left: 4rem;
-}
-main .battery .battery__top #tom2 {
-  margin-right: 4rem;
-}
-main .battery .battery__top #tom2:hover {
-  background-color: red;
-}
 main .battery .battery__middle {
   display: flex;
   width: 100%;
@@ -76,18 +70,34 @@ main .battery .battery__middle {
   background-color: chocolate;
 }
 main .battery .battery__middle #tom3 {
-  margin-right: 5rem;
+  margin-right: 2rem;
+  margin-bottom: -1rem;
   align-self: flex-end;
 }
 main .battery .battery__middle #tom4 {
   margin-right: 1rem;
+  margin-top: -3rem;
 }
 main .battery .battery__middle #tom5 {
   margin-left: 1rem;
+  margin-top: -3rem;
 }
 main .battery .battery__middle #tom6 {
-  margin-left: 5rem;
+  margin-left: 2rem;
+  margin-bottom: -1rem;
   align-self: flex-end;
+}
+main .battery .battery__buttom {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+main .battery .battery__buttom #tom7 {
+  margin-right: 2rem;
+}
+main .battery .battery__buttom #tom9 {
+  margin-left: 2rem;
 }
 
 footer {

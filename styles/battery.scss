@@ -20,6 +20,9 @@ main {
         .battery__tom {
             border: none;
             border-radius: 50%;
+            &:hover{
+                background-color: red;
+            }
         }
     
         .battery__tom--small {
@@ -40,15 +43,7 @@ main {
             flex-direction: row;
             justify-content: space-between;
             background-color: blueviolet;
-            #tom1{
-                margin-left: 4rem;
-            }
-            #tom2{
-                margin-right: 4rem;
-                &:hover{
-                    background-color: red;
-                }
-            }
+            
             
         }
     
@@ -60,20 +55,40 @@ main {
             background-color: chocolate;
 
             #tom3{
-                margin-right: 5rem;
+                margin-right: 2rem;
+                margin-bottom: -1rem;
                 align-self: flex-end;
             }
             #tom4{
                 margin-right: 1rem;
+                margin-top: -3rem;
+
             }
             #tom5{
                 margin-left: 1rem;
+                margin-top: -3rem;
             }
             #tom6{
-                margin-left: 5rem;
+                margin-left: 2rem;
+                margin-bottom: -1rem;
                 align-self: flex-end;
             }
 
+        }
+        .battery__buttom{
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            #tom7{
+                margin-right: 2rem;
+            }
+            #tom8{
+                //nada por hacer
+            }
+            #tom9{
+                margin-left: 2rem;
+            }
         }
 
 
