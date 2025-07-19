@@ -39,11 +39,21 @@ main .battery {
   background-color: aqua;
 }
 main .battery .battery__tom {
+  background-image: url('../images/tombos-bg.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   border: none;
-  border-radius: 50%;
+  outline: none;
+  border-radius: 50%; /* Hace los bombos redondos */
+  overflow: hidden;   /* Opcional: recorta la imagen al círculo */
+  transition: transform 0.15s ease;
 }
 main .battery .battery__tom:hover {
   background-color: red;
+}
+main .battery .battery__tom:active {
+  transform: scale(1.15);
 }
 main .battery .battery__tom--small {
   width: 100px;
