@@ -1,7 +1,19 @@
+/* Reset de estilos */
+@import url('reset.css');
+
+/* Header */
 header {
   display: flex;
   justify-content: space-around;
   text-align: center;
+  background-image: url('../images/bateria-champetera-atardecer.jpeg');
+  background-size: cover;
+  background-position: center 65%; /* Sube la imagen, puedes ajustar el porcentaje */
+  background-repeat: no-repeat;
+  position: relative;
+  color: #fff;
+  text-shadow: 2px 2px 8px #000;
+  padding: 60px 0 40px 0;
 }
 
 .ad-sup {
@@ -20,6 +32,7 @@ header {
   margin: 1rem 0;
 }
 
+/* Main y batería */
 main {
   display: flex;
   flex-direction: column;
@@ -29,7 +42,8 @@ main {
   height: auto;
   background-color: blanchedalmond;
 }
-main .battery {
+
+.battery {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -38,78 +52,95 @@ main .battery {
   height: auto;
   background-color: aqua;
 }
-main .battery .battery__tom {
+
+.battery__tom {
   background-image: url('../images/tombos-bg.jpeg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   border: none;
   outline: none;
-  border-radius: 50%; /* Hace los bombos redondos */
-  overflow: hidden;   /* Opcional: recorta la imagen al círculo */
+  border-radius: 50%;
+  overflow: hidden;
   transition: transform 0.15s ease;
+  position: relative;
 }
-main .battery .battery__tom:hover {
-  background-color: red;
+.battery__tom:hover {
+  /* background-color: red; */
 }
-main .battery .battery__tom:active {
+.battery__tom:active {
   transform: scale(1.15);
 }
-main .battery .battery__tom--small {
+.battery__tom.active {
+  transform: scale(1.15);
+  /* background-color: red; */
+}
+.battery__tom--small {
   width: 100px;
   height: 100px;
-  background-color: blue;
 }
-main .battery .battery__tom--medium {
+.battery__tom--medium {
   width: 150px;
   height: 150px;
-  background-color: cadetblue;
 }
-main .battery .battery__top {
+.battery__top {
   display: flex;
   width: 100%;
   flex-direction: row;
   justify-content: space-between;
   background-color: blueviolet;
 }
-main .battery .battery__middle {
+.battery__middle {
   display: flex;
   width: 100%;
   flex-direction: row;
   justify-content: center;
   background-color: chocolate;
 }
-main .battery .battery__middle #tom3 {
+.battery__middle #tom3 {
   margin-right: 2rem;
   margin-bottom: -1rem;
   align-self: flex-end;
 }
-main .battery .battery__middle #tom4 {
+.battery__middle #tom4 {
   margin-right: 1rem;
   margin-top: -3rem;
 }
-main .battery .battery__middle #tom5 {
+.battery__middle #tom5 {
   margin-left: 1rem;
   margin-top: -3rem;
 }
-main .battery .battery__middle #tom6 {
+.battery__middle #tom6 {
   margin-left: 2rem;
   margin-bottom: -1rem;
   align-self: flex-end;
 }
-main .battery .battery__buttom {
+.battery__buttom {
   margin-top: 1rem;
   display: flex;
   flex-direction: row;
   justify-content: center;
 }
-main .battery .battery__buttom #tom7 {
+.battery__buttom #tom7 {
   margin-right: 2rem;
 }
-main .battery .battery__buttom #tom9 {
+.battery__buttom #tom9 {
   margin-left: 2rem;
 }
+.battery__tom-key {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 2em;
+  font-weight: bold;
+  text-shadow: 2px 2px 8px #000;
+  pointer-events: none;
+  z-index: 2;
+}
 
+/* Footer */
 footer {
   margin-top: 1em;
 }
