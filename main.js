@@ -1,5 +1,3 @@
-
-
 // --- Batería Champetera: Audio instantáneo, código claro y documentado ---
 
 // Contexto de audio global para reproducir sonidos
@@ -135,4 +133,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('click', () => {
     if (audioCtx.state === 'suspended') audioCtx.resume();
   }, { once: true });
+
+  // Actualiza solo el año automáticamente en el footer
+  const year = new Date().getFullYear();
+  const footerYear = document.getElementById('footerYear');
+  if (footerYear) {
+    // Mantiene la versión fija y actualiza solo el año
+    footerYear.textContent = `© ${year} Piano Champetero. Todos los derechos reservados. v.1.0`;
+  }
 });
