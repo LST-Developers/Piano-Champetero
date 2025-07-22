@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="es-419">
 
   <head>
     <title>Batería Champetera Virtual</title>
     <meta name="description" content="¡Dale sabor y emoción a tus fiestas con los mejores samplers de champeta! Descubre los ritmos más populares y las mezclas más impactantes para animar tus canciones y hacer que tus celebraciones sean inolvidables. Encuentra aquí los samplers de champeta que harán vibrar a tu audiencia y convierte tus eventos en auténticas fiestas llenas de alegría y ritmo.">
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+    <meta http-equiv="content-language" content="es-419">
     <meta charset="utf-8"/>
     <meta name="keywords" content="Champeta samplers, Mejores samplers de champeta, Ritmos de champeta, Mezclas de champeta, Fiestas con champeta, Música para fiestas, Ritmos populares de champeta, Sampler champeta en vivo, Bateria de champeta, Animar fiestas con champeta, Piano de champeta"/>
     <meta name="author" content="Andrés Orozco, Angel Meriño, Ricardo Lobelo, Wilman Montenegro">
@@ -59,8 +60,12 @@
             <button class="battery__tom battery__tom--small" id="tom8"><span class="battery__tom-key">X</span></button>
             <button class="battery__tom battery__tom--medium" id="tom9"><span class="battery__tom-key">C</span></button>
         </div>
-        
-        <input class="battery-volume" type="range" id="volumenSlider" min="0" max="1" step="0.01" value="0.5">
+        <div class="battery-volume-container">
+          <input class="battery-volume" type="range" id="volumenSlider" min="0" max="1" step="0.01" value="0.5">
+          <div class="battery-volume-label">
+            <span id="volumenPorcentaje">50%</span>
+          </div>
+        </div>
       </div>
       <!-- <div class="ad-box-der">
         <div class="ad-der">
@@ -77,7 +82,7 @@
           ANUNCIO
         </div> -->
 
-        <p>© 2023 Piano Champetero. Todos los derechos reservados.</p>
+        <p>© 2025 Piano Champetero. Todos los derechos reservados.</p>
     </footer>
     <script src="main.js"></script>
   </body>
