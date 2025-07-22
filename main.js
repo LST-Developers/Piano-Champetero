@@ -65,14 +65,22 @@ function reproducirTom(tomId) {
 }
 
 /**
- * Activa la animación y el sonido de un tom
+ * Activa la animación y el sonido de un tom de forma optimizada
  * @param {string} tomId - ID del tom a activar
  */
 function activarTom(tomId) {
   const boton = document.getElementById(tomId);
   if (!boton) return;
   boton.classList.add('active');
-  reproducirTom(tomId);
+  // Asegura que el contexto de audio esté activo antes de reproducir
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().then(() => {
+      requestAnimationFrame(() => reproducirTom(tomId));
+    });
+  } else {
+    requestAnimationFrame(() => reproducirTom(tomId));
+  }
+  // Animación optimizada
   setTimeout(() => boton.classList.remove('active'), 60);
 }
 
