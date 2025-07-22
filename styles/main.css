@@ -1,19 +1,65 @@
 /* Reset de estilos */
 @import url('reset.css');
 
+/* Layout general para sticky footer */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: 
+    radial-gradient(circle at 30% 20%, rgba(255, 224, 102, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(255, 107, 107, 0.2) 0%, transparent 50%),
+    linear-gradient(135deg, 
+      #FFE066 0%,     /* Amarillo cálido */
+      #FF9A56 25%,    /* Naranja suave */
+      #FF6B6B 50%,    /* Rojo coral */
+      #FFB7C5 75%,    /* Rosado suave */
+      #FFF5E6 100%    /* Crema claro */
+    );
+  background-attachment: fixed;
+  background-size: 400% 400%;
+  animation: gradientShift 20s ease infinite;
+}
+
+/* Animación del degradado para dar sensación de energía */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+main {
+  flex: 1;
+}
+
 /* Header */
 header {
   display: flex;
   justify-content: space-around;
   text-align: center;
-  background-image: url('../images/bateria-champetera-atardecer.jpeg');
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2)),
+    url('../images/bateria-champetera-atardecer.jpeg');
   background-size: cover;
   background-position: center 65%; /* Sube la imagen, puedes ajustar el porcentaje */
   background-repeat: no-repeat;
   position: relative;
   color: #fff;
-  text-shadow: 2px 2px 8px #000;
+  text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.8);
   padding: 60px 0 40px 0;
+  border-bottom: 3px solid rgba(255, 224, 102, 0.6);
 }
 
 .ad-sup {
@@ -34,13 +80,14 @@ header {
 
 /* Main y batería */
 main {
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
   height: auto;
-  background-color: blanchedalmond;
+  padding: 2rem 0;
 }
 
 .battery {
@@ -50,7 +97,7 @@ main {
   align-items: center;
   width: 700px;
   height: auto;
-  background-color: aqua;
+  margin-top: 2em;
 }
 
 .battery__tom {
@@ -58,22 +105,29 @@ main {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  border: none;
+  border: 3px solid rgba(255, 255, 255, 0.8);
   outline: none;
   border-radius: 50%;
   overflow: hidden;
-  transition: transform 0.15s ease;
+  transition: all 0.2s ease;
   position: relative;
-}
-.battery__tom:hover {
-  /* background-color: red; */
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(255, 224, 102, 0.4);
 }
 .battery__tom:active {
   transform: scale(1.15);
+  box-shadow: 
+    0 6px 25px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(255, 107, 107, 0.6);
+  border-color: rgba(255, 224, 102, 1);
 }
 .battery__tom.active {
   transform: scale(1.15);
-  /* background-color: red; */
+  box-shadow: 
+    0 6px 25px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(255, 107, 107, 0.6);
+  border-color: rgba(255, 224, 102, 1);
 }
 .battery__tom--small {
   width: 100px;
@@ -88,14 +142,12 @@ main {
   width: 100%;
   flex-direction: row;
   justify-content: space-between;
-  background-color: blueviolet;
 }
 .battery__middle {
   display: flex;
   width: 100%;
   flex-direction: row;
   justify-content: center;
-  background-color: chocolate;
 }
 .battery__middle #tom3 {
   margin-right: 2rem;
@@ -142,7 +194,16 @@ main {
 
 /* Footer */
 footer {
-  margin-top: 1em;
+  margin-top: auto;
+  padding: 1.5rem 0;
+  text-align: center;
+  background: linear-gradient(180deg, 
+    rgba(255, 224, 102, 0.1) 0%, 
+    rgba(255, 107, 107, 0.1) 100%
+  );
+  border-top: 2px solid rgba(255, 224, 102, 0.3);
+  color: rgba(0, 0, 0, 0.8);
+  font-weight: 500;
 }
 
 .ad-inf {
