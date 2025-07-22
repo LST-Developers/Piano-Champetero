@@ -28,14 +28,13 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Elimina cualquier scroll */
+  overflow-x: hidden;
 }
 
 body {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  max-height: 100vh;
+  min-height: 100vh;
   background: 
     radial-gradient(circle at 30% 20%, rgba(255, 224, 102, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 70% 80%, rgba(255, 107, 107, 0.2) 0%, transparent 50%),
@@ -66,6 +65,13 @@ body {
 
 main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: auto;
+  padding: 1rem 0;
 }
 
 /* Header */
@@ -112,7 +118,7 @@ main {
   align-items: center;
   width: 100%;
   height: auto;
-  padding: 2rem 0;
+  padding: 1rem 0;
 }
 
 .battery {
@@ -122,7 +128,7 @@ main {
   align-items: center;
   width: 700px;
   height: auto;
-  margin-top: 2em;
+  margin-top: 0.5em;
 }
 
 .battery__tom {
@@ -239,6 +245,7 @@ footer {
   z-index: 10;
   transition: all 0.3s ease;
   flex-shrink: 0;
+  margin-top: auto;
 }
 
 footer:hover {
