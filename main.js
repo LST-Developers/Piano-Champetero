@@ -89,6 +89,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Precarga todos los sonidos
   await precargarTodosLosToms();
 
+  // Asigna dinámicamente las letras a cada botón según el mapeo keyToTomId
+  Object.entries(keyToTomId).forEach(([key, tomId]) => {
+    const boton = document.getElementById(tomId);
+    if (boton) {
+      const span = boton.querySelector('.battery__tom-key');
+      if (span) span.textContent = key.toUpperCase();
+    }
+  });
+
   // Referencias a los controles de volumen
   const sliderVolumen = document.getElementById('volumenSlider');
   const labelPorcentaje = document.getElementById('volumenPorcentaje');
