@@ -5,15 +5,15 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 // Mapeo de IDs de toms a rutas de archivos de audio
 const tomAudioMap = {
-  tom1: 'sounds/SK1.WAV',
-  tom2: 'sounds/SK2.WAV',
-  tom3: 'sounds/SKTAC.WAV',
-  tom4: 'sounds/SKTUN.WAV',
-  tom5: 'sounds/Golpe SK5.wav',
-  tom6: 'sounds/Pitico.wav',
-  tom7: 'sounds/Leon.wav',
-  tom8: 'sounds/Lazer.wav',
-  tom9: 'sounds/pitico medio.wav'
+  tom1: 'sounds/Golpe SK5.wav',
+  tom2: 'sounds/Lazer.wav',
+  tom3: 'sounds/Leon.wav',
+  tom4: 'sounds/perro bajo.WAV',
+  tom5: 'sounds/Pitico.wav',
+  tom6: 'sounds/pitico medio.wav',
+  tom7: 'sounds/SKTAC.WAV',
+  tom8: 'sounds/SK1.WAV',
+  tom9: 'sounds/SK2.WAV'
 };
 
 // Mapeo de teclas a IDs de toms
