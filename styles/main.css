@@ -88,7 +88,7 @@ header {
   position: relative;
   color: #fff;
   text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.8);
-  padding: 7rem 0 5rem 0;
+  padding: 3rem 0 2rem 0;
   border-bottom: 3px solid rgba(255, 224, 102, 0.6);
   flex-shrink: 0;
 }
@@ -122,13 +122,14 @@ main {
 }
 
 .battery {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(3, auto);
+  gap: 0;
+  justify-items: center;
   align-items: center;
-  width: 700px;
-  height: auto;
-  margin-top: 0.5em;
+  box-sizing: border-box;
+  padding: 0;
 }
 
 .battery__tom {
@@ -142,9 +143,10 @@ main {
   overflow: hidden;
   transition: all 0.2s ease;
   position: relative;
-  box-shadow: 
-    0 4px 15px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(255, 224, 102, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 224, 102, 0.4);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 .battery__tom:active {
   transform: scale(1.28);
@@ -163,53 +165,56 @@ main {
 .battery__tom--small {
   width: 100px;
   height: 100px;
+  min-width: 0;
+  min-height: 0;
 }
 .battery__tom--medium {
   width: 150px;
   height: 150px;
+  min-width: 0;
+  min-height: 0;
 }
-.battery__top {
-  display: flex;
-  width: 100%;
-  flex-direction: row;
-  justify-content: space-between;
+/* Elimina los contenedores de filas, ahora todo se distribuye con grid. */
+/* Posiciona cada tom en la grilla para lograr la forma deseada */
+.battery #tom1 { grid-column: 1; grid-row: 1; 
+  justify-self: center;
+  align-self: end;
+  margin-bottom: -20%;
+  }
+.battery #tom2 { grid-column: 5; grid-row: 1; 
+  justify-self: center;
+  align-self: end;
+  margin-bottom: -20%;
 }
-.battery__middle {
-  display: flex;
-  width: 100%;
-  flex-direction: row;
-  justify-content: center;
+.battery #tom3 { grid-column: 1; grid-row: 2; 
+  justify-self: end;
+  align-self: end;
+  margin-right: -30%;
 }
-.battery__middle #tom3 {
-  margin-right: 2rem;
-  margin-bottom: -1rem;
-  align-self: flex-end;
+.battery #tom4 { grid-column: 2; grid-row: 2;
+  justify-self: end;
+  margin-right: -40%;
 }
-.battery__middle #tom4 {
-  margin-right: 1rem;
-  margin-top: -3rem;
+.battery #tom5 { grid-column: 4; grid-row: 2;
+  justify-self: start;
+  margin-left: -40%;
 }
-.battery__middle #tom5 {
-  margin-left: 1rem;
-  margin-top: -3rem;
+.battery #tom6 { grid-column: 5; grid-row: 2; 
+  justify-self: start;
+  align-self: end;
+  margin-left: -30%;
 }
-.battery__middle #tom6 {
-  margin-left: 2rem;
-  margin-bottom: -1rem;
-  align-self: flex-end;
+.battery #tom7 { grid-column: 2; grid-row: 3; 
+  margin-top: 5%;
+  justify-self: end;
+  align-self: start;
 }
-.battery__buttom {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
+.battery #tom8 { grid-column: 3; grid-row: 3;
+  justify-self: center;
+  align-self: start;
 }
-.battery__buttom #tom7 {
-  margin-right: 2rem;
-}
-.battery__buttom #tom9 {
-  margin-left: 2rem;
-}
+.battery #tom9 { grid-column: 4; grid-row: 3; 
+margin-top: 5%;}
 .battery__tom-key {
   position: absolute;
   top: 50%;
