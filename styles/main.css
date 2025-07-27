@@ -1,3 +1,110 @@
+
+/* ===================== IMPORTS ===================== */
+@import url('reset.css');
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap');
+
+/* ===================== MODO EDICIÓN ===================== */
+.modo-edicion .battery__tom.active,
+.modo-edicion .battery__tom:active {
+  box-shadow: none !important;
+  transform: none !important;
+  border-color: rgba(255,255,255,0.8) !important;
+  transition: none !important;
+}
+
+/* ===================== BOTÓN EDITAR ===================== */
+.editar-letras-btn {
+  background: #FF9A56;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45em 1em;
+  font-size: 1.1em;
+  font-family: inherit;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  margin-bottom: 1.2em;
+}
+.editar-letras-btn:hover {
+  background: #FF6B6B;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+}
+
+/* ===================== MODAL ===================== */
+.modal-editar-tecla {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.35);
+  z-index: 1000;
+}
+.modal-editar-tecla .modal-content {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 2em 1.5em 1em 1.5em;
+  min-width: 260px;
+  max-width: 90vw;
+  text-align: center;
+}
+.modal-editar-tecla h3 {
+  margin-top: 0;
+  font-size: 1.2em;
+  color: #8B4513;
+}
+.modal-editar-tecla input {
+  font-size: 1.3em;
+  padding: 0.4em 0.7em;
+  margin: 1em 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  outline: none;
+  text-align: center;
+}
+.modal-actions {
+  display: flex;
+  gap: 1em;
+  justify-content: center;
+}
+.modal-actions button {
+  padding: 0.5em 1.2em;
+  border-radius: 6px;
+  border: none;
+  background: #FF9A56;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-actions button:hover {
+  background: #FF6B6B;
+}
+
+/* ===================== ICONO EDITAR ===================== */
+.edit-icon {
+  position: absolute;
+  top: 13%;
+  right: 17%;
+  transform: translate(20%, 20%);
+  font-size: 1.15em;
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  cursor: pointer;
+  z-index: 3;
+  box-shadow: none;
+}
+.edit-icon i {
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.45);
+  border-radius: 50%;
+}
+
+/* ===================== VOLUMEN ===================== */
 .battery-volume-container {
   display: flex;
   flex-direction: column;
@@ -20,17 +127,14 @@
   font-weight: bold;
   letter-spacing: 1px;
 }
-/* Reset de estilos */
-@import url('reset.css');
 
-/* Layout general para sticky footer */
+/* ===================== LAYOUT ===================== */
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
 }
-
 body {
   display: flex;
   flex-direction: column;
@@ -39,30 +143,21 @@ body {
     radial-gradient(circle at 30% 20%, rgba(255, 224, 102, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 70% 80%, rgba(255, 107, 107, 0.2) 0%, transparent 50%),
     linear-gradient(135deg, 
-      #FFE066 0%,     /* Amarillo cálido */
-      #FF9A56 25%,    /* Naranja suave */
-      #FF6B6B 50%,    /* Rojo coral */
-      #FFB7C5 75%,    /* Rosado suave */
-      #FFF5E6 100%    /* Crema claro */
+      #FFE066 0%, #FF9A56 25%, #FF6B6B 50%, #FFB7C5 75%, #FFF5E6 100%
     );
   background-attachment: fixed;
   background-size: 400% 400%;
   animation: gradientShift 20s ease infinite;
 }
 
-/* Animación del degradado para dar sensación de energía */
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+body.modo-edicion {
 }
-
+  /* Se eliminó la desactivación de la animación para que el fondo no cambie a amarillo */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 main {
   flex: 1;
   display: flex;
@@ -74,7 +169,7 @@ main {
   padding: 1rem 0;
 }
 
-/* Header */
+/* ===================== HEADER ===================== */
 header {
   display: flex;
   justify-content: space-around;
@@ -92,7 +187,6 @@ header {
   border-bottom: 3px solid rgba(255, 224, 102, 0.6);
   flex-shrink: 0;
 }
-
 .ad-sup {
   display: flex;
   margin-left: 1em;
@@ -101,7 +195,6 @@ header {
   justify-content: center;
   align-items: center;
 }
-
 .title {
   font-family: "Seaweed Script";
   font-size: 7em;
@@ -109,18 +202,7 @@ header {
   margin: 0.5rem 0;
 }
 
-/* Main y batería */
-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: auto;
-  padding: 1rem 0;
-}
-
+/* ===================== BATERÍA ===================== */
 .battery {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -131,7 +213,6 @@ main {
   box-sizing: border-box;
   padding: 0;
 }
-
 .battery__tom {
   background-image: url('../images/tombos-bg.jpeg');
   background-size: cover;
@@ -148,18 +229,9 @@ main {
   margin: 0;
   padding: 0;
 }
-.battery__tom:active {
-  transform: scale(1.28);
-  box-shadow: 
-    0 6px 25px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(255, 107, 107, 0.6);
-  border-color: rgba(255, 224, 102, 1);
-}
 .battery__tom.active {
   transform: scale(1.28);
-  box-shadow: 
-    0 6px 25px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(255, 107, 107, 0.6);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 107, 107, 0.6);
   border-color: rgba(255, 224, 102, 1);
 }
 .battery__tom--small {
@@ -174,47 +246,15 @@ main {
   min-width: 0;
   min-height: 0;
 }
-/* Elimina los contenedores de filas, ahora todo se distribuye con grid. */
-/* Posiciona cada tom en la grilla para lograr la forma deseada */
-.battery #tom1 { grid-column: 1; grid-row: 1; 
-  justify-self: center;
-  align-self: end;
-  margin-bottom: -30%;
-  }
-.battery #tom2 { grid-column: 5; grid-row: 1; 
-  justify-self: center;
-  align-self: end;
-  margin-bottom: -30%;
-}
-.battery #tom3 { grid-column: 1; grid-row: 2; 
-  justify-self: end;
-  align-self: end;
-  margin-right: -30%;
-}
-.battery #tom4 { grid-column: 2; grid-row: 2;
-  justify-self: end;
-  margin-right: -40%;
-}
-.battery #tom5 { grid-column: 4; grid-row: 2;
-  justify-self: start;
-  margin-left: -40%;
-}
-.battery #tom6 { grid-column: 5; grid-row: 2; 
-  justify-self: start;
-  align-self: end;
-  margin-left: -30%;
-}
-.battery #tom7 { grid-column: 2; grid-row: 3; 
-  margin-top: 5%;
-  justify-self: end;
-  align-self: start;
-}
-.battery #tom8 { grid-column: 3; grid-row: 3;
-  justify-self: center;
-  align-self: start;
-}
-.battery #tom9 { grid-column: 4; grid-row: 3; 
-margin-top: 5%;}
+.battery #tom1 { grid-column: 1; grid-row: 1; justify-self: center; align-self: end; margin-bottom: -30%; }
+.battery #tom2 { grid-column: 5; grid-row: 1; justify-self: center; align-self: end; margin-bottom: -30%; }
+.battery #tom3 { grid-column: 1; grid-row: 2; justify-self: end; align-self: end; margin-right: -30%; }
+.battery #tom4 { grid-column: 2; grid-row: 2; justify-self: end; margin-right: -40%; }
+.battery #tom5 { grid-column: 4; grid-row: 2; justify-self: start; margin-left: -40%; }
+.battery #tom6 { grid-column: 5; grid-row: 2; justify-self: start; align-self: end; margin-left: -30%; }
+.battery #tom7 { grid-column: 2; grid-row: 3; margin-top: 5%; justify-self: end; align-self: start; }
+.battery #tom8 { grid-column: 3; grid-row: 3; justify-self: center; align-self: start; }
+.battery #tom9 { grid-column: 4; grid-row: 3; margin-top: 5%; }
 .battery__tom-key {
   position: absolute;
   top: 50%;
@@ -228,20 +268,14 @@ margin-top: 5%;}
   z-index: 2;
 }
 
-/* Footer */
+/* ===================== FOOTER ===================== */
 footer {
   width: 100%;
   padding: 0.8rem 0;
   text-align: center;
-  background: linear-gradient(135deg, 
-    #8B4513 0%,     /* Marrón oscuro */
-    #A0522D 50%,    /* Marrón medio */
-    #CD853F 100%    /* Marrón claro */
-  );
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #CD853F 100%);
   border-top: 3px solid rgba(255, 224, 102, 0.7);
-  box-shadow: 
-    0 -4px 15px rgba(0, 0, 0, 0.3),
-    inset 0 2px 10px rgba(255, 224, 102, 0.2);
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3), inset 0 2px 10px rgba(255, 224, 102, 0.2);
   color: #FFF5E6;
   font-size: 0.8em;
   font-weight: 400;
@@ -252,19 +286,14 @@ footer {
   flex-shrink: 0;
   margin-top: auto;
 }
-
 footer:hover {
-  box-shadow: 
-    0 -6px 20px rgba(0, 0, 0, 0.4),
-    inset 0 2px 15px rgba(255, 224, 102, 0.3);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.4), inset 0 2px 15px rgba(255, 224, 102, 0.3);
   border-top-color: rgba(255, 224, 102, 0.9);
 }
-
 footer p {
   margin: 0;
   letter-spacing: 0.5px;
 }
-
 .ad-inf {
   display: flex;
   background-color: lightgray;

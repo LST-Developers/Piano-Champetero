@@ -1,3 +1,111 @@
+// --- Estado global de edición ---
+let modoEdicionActivo = false;
+
+// --- Edición de letras de los toms ---
+document.addEventListener('DOMContentLoaded', () => {
+  // --- Edición de letras ---
+  const editarBtn = document.getElementById('editarLetrasBtn');
+  const editIcons = document.querySelectorAll('.edit-icon');
+  const modal = document.getElementById('modalEditarTecla');
+  const input = document.getElementById('nuevaTeclaInput');
+  const guardarBtn = document.getElementById('guardarTeclaBtn');
+  const cancelarBtn = document.getElementById('cancelarTeclaBtn');
+  let tomEditando = null;
+
+  // Oculta los íconos de editar al inicio
+  editIcons.forEach(icon => icon.style.display = 'none');
+
+  // Activa/desactiva modo edición y cambia el texto del botón
+  let modoEdicionActivo = false;
+  function actualizarTextoBotonEdicion() {
+    editarBtn.textContent = modoEdicionActivo ? 'Desactivar edición de teclas' : 'Activar edición de teclas';
+  }
+  actualizarTextoBotonEdicion();
+  editarBtn.addEventListener('click', () => {
+    modoEdicionActivo = !modoEdicionActivo;
+    window.modoEdicionActivo = modoEdicionActivo; // <-- Sincroniza el estado global
+    // Agrega o quita la clase al body
+    document.body.classList.toggle('modo-edicion', modoEdicionActivo);
+    editIcons.forEach(icon => icon.style.display = modoEdicionActivo ? 'inline-block' : 'none');
+    editarBtn.disabled = false;
+    actualizarTextoBotonEdicion();
+    // Si se desactiva el modo edición, cierra el modal si está abierto
+    if (!modoEdicionActivo && modal.style.display === 'flex') {
+      modal.style.display = 'none';
+      tomEditando = null;
+    }
+  });
+
+  // Al hacer click en el ícono, abre el modal
+  editIcons.forEach(icon => {
+    icon.addEventListener('click', e => {
+      e.stopPropagation();
+      tomEditando = icon.closest('button');
+      modal.style.display = 'flex';
+      input.value = '';
+      input.focus();
+    });
+  });
+
+  // --- Utilidades para guardar y cargar mapeo de teclas ---
+  function guardarMapeoLocal() {
+    localStorage.setItem('pianoChampeteroKeyMap', JSON.stringify(keyToTomId));
+  }
+  function cargarMapeoLocal() {
+    const data = localStorage.getItem('pianoChampeteroKeyMap');
+    if (data) {
+      const obj = JSON.parse(data);
+      // Limpiar y copiar claves al objeto global
+      Object.keys(keyToTomId).forEach(k => delete keyToTomId[k]);
+      Object.entries(obj).forEach(([k, v]) => keyToTomId[k] = v);
+    }
+  }
+
+  // Cargar mapeo guardado al iniciar
+  cargarMapeoLocal();
+
+  // Guardar nueva letra y persistir
+  guardarBtn.addEventListener('click', () => {
+    const letra = input.value.trim().toUpperCase();
+    if (!letra || letra.length !== 1) return input.focus();
+    const spanKey = tomEditando.querySelector('.battery__tom-key');
+    spanKey.textContent = letra;
+    // Actualiza el mapeo en JS
+    const tomId = tomEditando.id;
+    for (const [key, id] of Object.entries(keyToTomId)) {
+      if (id === tomId) {
+        delete keyToTomId[key];
+        keyToTomId[letra.toLowerCase()] = tomId;
+        break;
+      }
+    }
+    guardarMapeoLocal(); // <-- Guarda en localStorage
+    modal.style.display = 'none';
+    tomEditando = null;
+    editarBtn.disabled = false;
+    // No desactiva modo edición aquí
+    window.modoEdicionActivo = modoEdicionActivo; // <-- Sincroniza el estado global
+    document.body.classList.toggle('modo-edicion', modoEdicionActivo);
+    editIcons.forEach(icon => icon.style.display = modoEdicionActivo ? 'inline-block' : 'none');
+  });
+
+  // Cancelar edición
+  cancelarBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    tomEditando = null;
+    editarBtn.disabled = false;
+    // No desactiva modo edición aquí
+    window.modoEdicionActivo = modoEdicionActivo; // <-- Sincroniza el estado global
+    document.body.classList.toggle('modo-edicion', modoEdicionActivo);
+    editIcons.forEach(icon => icon.style.display = modoEdicionActivo ? 'inline-block' : 'none');
+  });
+
+  // Permite cerrar el modal con Escape
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Escape') cancelarBtn.click();
+    if (e.key === 'Enter') guardarBtn.click();
+  });
+});
 // --- Batería Champetera: Audio instantáneo, código claro y documentado ---
 
 // Contexto de audio global para reproducir sonidos
@@ -69,6 +177,8 @@ function reproducirTom(tomId) {
  * @param {string} tomId - ID del tom a activar
  */
 function activarTom(tomId) {
+  // Refuerzo: no ejecutar nada si está activo el modo edición
+  if (window.modoEdicionActivo) return;
   const boton = document.getElementById(tomId);
   if (!boton) return;
   boton.classList.add('active');
@@ -89,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Precarga todos los sonidos
   await precargarTodosLosToms();
 
-  // Asigna dinámicamente las letras a cada botón según el mapeo keyToTomId
+  // Al asignar letras a los botones, usa el mapeo actual
   Object.entries(keyToTomId).forEach(([key, tomId]) => {
     const boton = document.getElementById(tomId);
     if (boton) {
@@ -133,6 +243,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Evento para activar toms con el teclado
   document.addEventListener('keydown', e => {
+    // Si el modal de edición está visible o el modo edición está activo, no activar el tom
+    const modal = document.getElementById('modalEditarTecla');
+    if ((modal && modal.style.display === 'flex') || window.modoEdicionActivo) return;
     const tomId = keyToTomId[e.key.toLowerCase()];
     if (tomId) {
       e.preventDefault();
@@ -143,7 +256,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Evento para activar toms con click
   Object.keys(tomAudioMap).forEach(tomId => {
     const boton = document.getElementById(tomId);
-    if (boton) boton.addEventListener('click', () => activarTom(tomId));
+    if (boton) boton.addEventListener('click', e => {
+      // Si el modo edición está activo, no hacer nada (ni animación ni sonido)
+      if (window.modoEdicionActivo) {
+        e.stopPropagation();
+        e.preventDefault();
+        return;
+      }
+      activarTom(tomId);
+    });
   });
 
   // Reanuda el contexto de audio en la primera interacción del usuario
@@ -158,4 +279,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Mantiene la versión fija y actualiza solo el año
     footerYear.textContent = `© ${year} Piano Champetero. Todos los derechos reservados. v.1.0`;
   }
+});
+
+// Exponer el estado de edición globalmente para el evento de click
+window.modoEdicionActivo = modoEdicionActivo;
+Object.defineProperty(window, 'modoEdicionActivo', {
+  get: function() { return modoEdicionActivo; },
+  set: function(val) { modoEdicionActivo = val; }
 });

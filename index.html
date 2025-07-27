@@ -21,9 +21,11 @@
   <meta charset="utf-8" />
   <meta name="keywords"
     content="batería champetera, piano champetero virtual, batería online, batería champeta gratis, sampler champeta, ritmos de champeta, mezclas de champeta, música para fiestas, batería virtual, piano virtual, batería electrónica, batería en línea, batería para fiestas, animar fiestas, champeta en vivo, batería digital, batería interactiva, batería colombiana, batería costeña, batería caribeña, batería de champeta, piano de champeta, batería para computador, batería para celular, batería web, batería interactiva online, batería para eventos, batería para DJ, batería para músicos, batería para niños, batería fácil, batería divertida" />
-  <meta name="author" content="Andrés Orozco, Angel Meriño, Ricardo Lobelo, Wilman Montenegro">
+  <meta name="author" content="Wilman Montenegro">
 
   <link rel="stylesheet" href="styles/main.css">
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
 
 
@@ -60,16 +62,54 @@
           ANUNCIO
         </div>
       </div> -->
+    <button id="editarLetrasBtn" class="editar-letras-btn">Editar letras</button>
     <div class="battery">
-      <button class="battery__tom battery__tom--small" id="tom1"><span class="battery__tom-key"></span></button>
-      <button class="battery__tom battery__tom--small" id="tom2"><span class="battery__tom-key"></span></button>
-      <button class="battery__tom battery__tom--small" id="tom3"><span class="battery__tom-key"></span></button>
-      <button class="battery__tom battery__tom--medium" id="tom4"><span class="battery__tom-key"></span></button>
-      <button class="battery__tom battery__tom--medium" id="tom5"><span class="battery__tom-key"></span></button>
-      <button class="battery__tom battery__tom--small" id="tom6"><span class="battery__tom-key"></span></button>
-      <button class="battery__tom battery__tom--medium" id="tom7"><span class="battery__tom-key"></span></button>
-      <button class="battery__tom battery__tom--small" id="tom8"><span class="battery__tom-key"></span></button>
-      <button class="battery__tom battery__tom--medium" id="tom9"><span class="battery__tom-key"></span></button>
+      <button class="battery__tom battery__tom--small" id="tom1">
+        <span class="battery__tom-key"></span>
+        <span class="edit-icon" title="Editar"><i class="fa-regular fa-pen-to-square"></i></span>
+      </button>
+      <button class="battery__tom battery__tom--small" id="tom2">
+        <span class="battery__tom-key"></span>
+        <span class="edit-icon" title="Editar"><i class="fa-regular fa-pen-to-square"></i></span>
+      </button>
+      <button class="battery__tom battery__tom--small" id="tom3">
+        <span class="battery__tom-key"></span>
+        <span class="edit-icon" title="Editar"><i class="fa-regular fa-pen-to-square"></i></span>
+      </button>
+      <button class="battery__tom battery__tom--medium" id="tom4">
+        <span class="battery__tom-key"></span>
+        <span class="edit-icon" title="Editar"><i class="fa-regular fa-pen-to-square"></i></span>
+      </button>
+      <button class="battery__tom battery__tom--medium" id="tom5">
+        <span class="battery__tom-key"></span>
+        <span class="edit-icon" title="Editar"><i class="fa-regular fa-pen-to-square"></i></span>
+      </button>
+      <button class="battery__tom battery__tom--small" id="tom6">
+        <span class="battery__tom-key"></span>
+        <span class="edit-icon" title="Editar"><i class="fa-regular fa-pen-to-square"></i></span>
+      </button>
+      <button class="battery__tom battery__tom--medium" id="tom7">
+        <span class="battery__tom-key"></span>
+        <span class="edit-icon" title="Editar"><i class="fa-regular fa-pen-to-square"></i></span>
+      </button>
+      <button class="battery__tom battery__tom--small" id="tom8">
+        <span class="battery__tom-key"></span>
+        <span class="edit-icon" title="Editar"><i class="fa-regular fa-pen-to-square"></i></span>
+      </button>
+      <button class="battery__tom battery__tom--medium" id="tom9">
+        <span class="battery__tom-key"></span>
+        <span class="edit-icon" title="Editar"><i class="fa-regular fa-pen-to-square"></i></span>
+      </button>
+    </div>
+    <div id="modalEditarTecla" class="modal-editar-tecla" style="display:none;">
+      <div class="modal-content">
+        <h3>Cambiar letra</h3>
+        <input type="text" id="nuevaTeclaInput" maxlength="1" placeholder="Nueva letra..." autofocus>
+        <div class="modal-actions">
+          <button id="guardarTeclaBtn">Guardar</button>
+          <button id="cancelarTeclaBtn">Cancelar</button>
+        </div>
+      </div>
     </div>
     <div class="battery-volume-container">
       <input class="battery-volume" type="range" id="volumenSlider" min="0" max="1" step="0.01" value="0.5">
