@@ -1,35 +1,113 @@
+/* ===================== SOBRE NOSOTROS ===================== */
+.sobre-nosotros {
+  max-width: 700px;
+  margin: 2.5em auto 2em auto;
+  background: rgba(255,255,255,0.85);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  padding: 2.2em 2em 1.5em 2em;
+  text-align: center;
+  color: #8B4513;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+.sobre-nosotros h2 {
+  font-family: 'Seaweed Script', cursive;
+  font-size: 2.7em;
+  color: var(--color-principal);
+  margin-bottom: 0.5em;
+  margin-top: 0;
+  letter-spacing: 1px;
+}
+.sobre-nosotros p {
+  font-size: 1.25em;
+  line-height: 1.7;
+  margin: 0;
+  color: #8B4513;
+  font-weight: 400;
+}
+/* ===================== NAVBAR ===================== */
+.main-nav {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5em;
+  margin-bottom: 1.5em;
+}
+.main-nav ul {
+  display: flex;
+  gap: 2.5em;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.main-nav a {
+  color: #fff;
+  font-size: 1.3em;
+  font-family: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 1px;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+  background: none;
+  box-shadow: none;
+}
+.main-nav a:hover,
+.main-nav a.active:hover {
+  color: var(--color-principal);
+  background: rgba(255,255,255,0.08);
+}
+.main-nav a.active {
+  color: var(--color-principal);
+  background: none;
+}
 
-/* ===================== IMPORTS ===================== */
+
+/* ===================== VARIABLES ===================== */
+:root {
+  --color-principal: #FF9A56;
+  --color-secundario: #FF6B6B;
+  --color-amarillo: #FFE066;
+  --color-marron: #8B4513;
+  --color-footer: #FFF5E6;
+  --borde-radius: 8px;
+  --sombra-btn: 0 2px 8px rgba(0,0,0,0.10);
+  --sombra-btn-hover: 0 4px 16px rgba(0,0,0,0.14);
+}
+
 @import url('reset.css');
 @import url('https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap');
 
-/* ===================== MODO EDICIÓN ===================== */
-.modo-edicion .battery__tom.active,
-.modo-edicion .battery__tom:active {
-  box-shadow: none !important;
-  transform: none !important;
-  border-color: rgba(255,255,255,0.8) !important;
-  transition: none !important;
-}
-
-/* ===================== BOTÓN EDITAR ===================== */
-.editar-letras-btn {
-  background: #FF9A56;
+/* ===================== BOTONES ===================== */
+.editar-letras-btn,
+.modal-actions button {
+  background: var(--color-principal);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 0.45em 1em;
-  font-size: 1.1em;
+  border-radius: var(--borde-radius);
   font-family: inherit;
   font-weight: bold;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   cursor: pointer;
   transition: background 0.2s, box-shadow 0.2s;
+}
+.editar-letras-btn {
+  padding: 0.45em 1em;
+  font-size: 1.1em;
+  box-shadow: var(--sombra-btn);
   margin-bottom: 1.2em;
 }
-.editar-letras-btn:hover {
-  background: #FF6B6B;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+.editar-letras-btn:hover,
+.modal-actions button:hover {
+  background: var(--color-secundario);
+  box-shadow: var(--sombra-btn-hover);
+}
+.modal-actions {
+  display: flex;
+  gap: 1em;
+  justify-content: center;
+}
+.modal-actions button {
+  padding: 0.5em 1.2em;
 }
 
 /* ===================== MODAL ===================== */
@@ -54,7 +132,7 @@
 .modal-editar-tecla h3 {
   margin-top: 0;
   font-size: 1.2em;
-  color: #8B4513;
+  color: var(--color-marron);
 }
 .modal-editar-tecla input {
   font-size: 1.3em;
@@ -64,24 +142,6 @@
   border: 1px solid #ccc;
   outline: none;
   text-align: center;
-}
-.modal-actions {
-  display: flex;
-  gap: 1em;
-  justify-content: center;
-}
-.modal-actions button {
-  padding: 0.5em 1.2em;
-  border-radius: 6px;
-  border: none;
-  background: #FF9A56;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.modal-actions button:hover {
-  background: #FF6B6B;
 }
 
 /* ===================== ICONO EDITAR ===================== */
@@ -113,7 +173,7 @@
 }
 .battery-volume {
   width: 180px;
-  accent-color: #FF9A56;
+  accent-color: var(--color-principal);
 }
 .battery-volume-label {
   margin-top: 0.5em;
@@ -123,7 +183,7 @@
 }
 #volumenPorcentaje {
   font-size: 1.2em;
-  color: #8B4513;
+  color: var(--color-marron);
   font-weight: bold;
   letter-spacing: 1px;
 }
@@ -143,16 +203,12 @@ body {
     radial-gradient(circle at 30% 20%, rgba(255, 224, 102, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 70% 80%, rgba(255, 107, 107, 0.2) 0%, transparent 50%),
     linear-gradient(135deg, 
-      #FFE066 0%, #FF9A56 25%, #FF6B6B 50%, #FFB7C5 75%, #FFF5E6 100%
+      var(--color-amarillo) 0%, var(--color-principal) 25%, var(--color-secundario) 50%, #FFB7C5 75%, var(--color-footer) 100%
     );
   background-attachment: fixed;
   background-size: 400% 400%;
   animation: gradientShift 20s ease infinite;
 }
-
-body.modo-edicion {
-}
-  /* Se eliminó la desactivación de la animación para que el fondo no cambie a amarillo */
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -172,7 +228,8 @@ main {
 /* ===================== HEADER ===================== */
 header {
   display: flex;
-  justify-content: space-around;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   background-image: 
     linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2)),
@@ -234,6 +291,13 @@ header {
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 107, 107, 0.6);
   border-color: rgba(255, 224, 102, 1);
 }
+.modo-edicion .battery__tom.active,
+.modo-edicion .battery__tom:active {
+  box-shadow: none !important;
+  transform: none !important;
+  border-color: rgba(255,255,255,0.8) !important;
+  transition: none !important;
+}
 .battery__tom--small {
   width: 100px;
   height: 100px;
@@ -273,10 +337,10 @@ footer {
   width: 100%;
   padding: 0.8rem 0;
   text-align: center;
-  background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #CD853F 100%);
+  background: linear-gradient(135deg, var(--color-marron) 0%, #A0522D 50%, #CD853F 100%);
   border-top: 3px solid rgba(255, 224, 102, 0.7);
   box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3), inset 0 2px 10px rgba(255, 224, 102, 0.2);
-  color: #FFF5E6;
+  color: var(--color-footer);
   font-size: 0.8em;
   font-weight: 400;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
