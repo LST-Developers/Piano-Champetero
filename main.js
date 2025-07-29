@@ -131,7 +131,7 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 // Mapeo de IDs de toms a rutas de archivos de audio
 const tomAudioMap = {
-  tom1: 'sounds/Golpe SK5.wav',
+  tom1: 'sounds/pitico medio.wav',
   tom2: 'sounds/perro bajo.WAV',
   tom3: 'sounds/PON1.wav',
   tom4: 'sounds/SKTAC.WAV',
