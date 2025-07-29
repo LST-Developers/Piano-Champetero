@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://piano-champetero.com/sitemap.xml
