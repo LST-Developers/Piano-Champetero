@@ -1,3 +1,21 @@
+// Cargar barra de navegación desde nav.html en todas las páginas
+window.addEventListener('DOMContentLoaded', function () {
+  const navContainer = document.getElementById('nav-container');
+  if (navContainer) {
+    fetch('nav.html')
+      .then(response => response.text())
+      .then(data => {
+        navContainer.innerHTML = data;
+        // Activar el enlace actual
+        const path = window.location.pathname;
+        if (path.endsWith('index.html') || path === '/' || path === '/Piano-Champetero/' ) {
+          document.getElementById('nav-inicio')?.classList.add('active');
+        } else if (path.endsWith('sobre-nosotros.html')) {
+          document.getElementById('nav-sobre')?.classList.add('active');
+        }
+      });
+  }
+});
 // --- Estado global de edición ---
 let modoEdicionActivo = false;
 
@@ -113,15 +131,15 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 // Mapeo de IDs de toms a rutas de archivos de audio
 const tomAudioMap = {
-  tom1: 'sounds/Golpe SK5.wav',
-  tom2: 'sounds/Lazer.wav',
-  tom3: 'sounds/Leon.wav',
-  tom4: 'sounds/perro bajo.WAV',
-  tom5: 'sounds/Pitico.wav',
-  tom6: 'sounds/pitico medio.wav',
-  tom7: 'sounds/SKTAC.WAV',
-  tom8: 'sounds/SK1.WAV',
-  tom9: 'sounds/SK2.WAV'
+  tom1: 'sounds/F2.wma',
+  tom2: 'sounds/perro bajo.WAV',
+  tom3: 'sounds/PON1.wav',
+  tom4: 'sounds/SKTAC.WAV',
+  tom5: 'sounds/Y.wav',
+  tom6: 'sounds/F4.wav',
+  tom7: 'sounds/Pitico.wav',
+  tom8: 'sounds/SK2.WAV',
+  tom9: 'sounds/WARA2.wav'
 };
 
 // Mapeo de teclas a IDs de toms
