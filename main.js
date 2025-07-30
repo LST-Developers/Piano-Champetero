@@ -1,5 +1,3 @@
-// --- Piano Champetero: Código compacto y limpio ---
-
 // Utilidades
 const normalizarRutaAudio = ruta => {
   if (!ruta) return '';
@@ -88,13 +86,14 @@ function reproducirTom(tomId) {
   source.connect(gainNode).connect(audioCtx.destination);
   source.start();
 }
-function activarTom(tomId) {
+async function activarTom(tomId) {
   if (window.modoEdicionActivo || window.modoEdicionSamplers) return;
   const boton = document.getElementById(tomId);
   if (!boton) return;
   boton.classList.add('active');
   if (audioCtx.state === 'suspended') {
-    audioCtx.resume().then(() => requestAnimationFrame(() => reproducirTom(tomId)));
+    await audioCtx.resume();
+    requestAnimationFrame(() => reproducirTom(tomId));
   } else {
     requestAnimationFrame(() => reproducirTom(tomId));
   }
@@ -246,6 +245,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           li.className = 'sampler-item';
           li.addEventListener('click', async () => {
             try {
+              if (audioCtx.state === 'suspended') await audioCtx.resume();
               const buffer = await cargarBufferAudio(normalizarRutaAudio(fileName));
               const source = audioCtx.createBufferSource();
               const gainNode = audioCtx.createGain();
@@ -321,24 +321,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Eventos de activación
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', async e => {
     const modal = document.getElementById('modalEditarTecla');
     if ((modal && modal.style.display === 'flex') || window.modoEdicionActivo || window.modoEdicionSamplers) return;
     const tomId = keyToTomId[e.key.toLowerCase()];
     if (tomId) {
       e.preventDefault();
-      activarTom(tomId);
+      await activarTom(tomId);
     }
   });
   Object.keys(tomAudioMap).forEach(tomId => {
     const boton = document.getElementById(tomId);
-    if (boton) boton.addEventListener('click', e => {
+    if (boton) boton.addEventListener('click', async e => {
       if (window.modoEdicionActivo || window.modoEdicionSamplers) {
         e.stopPropagation();
         e.preventDefault();
         return;
       }
-      activarTom(tomId);
+      await activarTom(tomId);
     });
   });
   document.addEventListener('click', () => { if (audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
