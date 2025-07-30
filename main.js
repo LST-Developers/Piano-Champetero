@@ -6,7 +6,7 @@ const tomSamplersDefaults = {
   tom3: 'Pitico.wav',
   tom4: 'SKTAC.WAV',
   tom5: 'Y.wav',
-  tom6: 'Golpe SK5.wav', // Asignar otro sampler existente o dejar vacío
+  tom6: 'Golpe SK5.wav',
   tom7: 'perro bajo.WAV',
   tom8: 'SK2.WAV',
   tom9: 'Smar 1.wav'
