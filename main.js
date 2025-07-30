@@ -2,7 +2,7 @@
 
 // Estado global
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const TOM_AUDIO_DEFAULTS = {
+const tomAudioDefaults = {
   tom1: 'D (2).wav',
   tom2: 'F4.wav',
   tom3: 'Pitico.wav',
@@ -13,10 +13,30 @@ const TOM_AUDIO_DEFAULTS = {
   tom8: 'SK2.WAV',
   tom9: 'Smar 1.wav'
 };
+
+const samplerList = [
+  'D (2).wav',
+  'F2.wma',
+  'F4.wav',
+  'Golpe SK5.wav',
+  'Lazer.wav',
+  'Leon.wav',
+  'PON1.wav',
+  'Pitico.wav',
+  'SK1.WAV',
+  'SK2.WAV',
+  'SKTAC.WAV',
+  'SKTUN.WAV',
+  'Smar 1.wav',
+  'WARA2.wav',
+  'Y.wav',
+  'perro bajo.WAV',
+  'pitico medio.wav'
+];
 // Inicializar tomAudioMap con los datos de localStorage si existen, si no con los defaults
 let tomAudioMap;
-(() => {
-  tomAudioMap = { ...TOM_AUDIO_DEFAULTS };
+(function initTomAudioMap() {
+  tomAudioMap = { ...tomAudioDefaults };
   const dataSamplers = localStorage.getItem('pianoChampeteroSamplers');
   if (dataSamplers) {
     try {
@@ -27,34 +47,30 @@ let tomAudioMap;
         }
       });
     } catch (e) {
-      // Si hay error, ignorar y usar defaults
+      // Ignore and use defaults
     }
   }
 })();
 const keyToTomIdDefaults = { q: 'tom1', w: 'tom2', e: 'tom3', a: 'tom4', s: 'tom5', d: 'tom6', z: 'tom7', x: 'tom8', c: 'tom9' };
-// Restablecer ajustes
-function restablecerAjustes() {
-  // Borrar configuraciones del usuario en localStorage
+// Reset user settings and restore defaults
+function resetSettings() {
   localStorage.removeItem('pianoChampeteroSamplers');
   localStorage.removeItem('pianoChampeteroKeyMap');
-  // Restaurar sonidos por defecto
-  Object.keys(tomAudioMap).forEach(k => tomAudioMap[k] = TOM_AUDIO_DEFAULTS[k]);
-  // Restaurar mapeo de teclas por defecto
+  Object.keys(tomAudioMap).forEach(k => tomAudioMap[k] = tomAudioDefaults[k]);
   Object.keys(keyToTomId).forEach(k => delete keyToTomId[k]);
   Object.entries(keyToTomIdDefaults).forEach(([k, v]) => keyToTomId[k] = v);
-  precargarTodosLosToms().then(() => {
-    // Actualizar letras en los botones
+  preloadAllSamplers().then(() => {
     Object.entries(keyToTomId).forEach(([key, tomId]) => {
-      const boton = document.getElementById(tomId);
-      if (boton) {
-        const span = boton.querySelector('.battery__tom-key');
+      const button = document.getElementById(tomId);
+      if (button) {
+        const span = button.querySelector('.battery__tom-key');
         if (span) span.textContent = key.toUpperCase();
       }
     });
   });
 }
 const keyToTomId = { q: 'tom1', w: 'tom2', e: 'tom3', a: 'tom4', s: 'tom5', d: 'tom6', z: 'tom7', x: 'tom8', c: 'tom9' };
-const tomBuffers = {};
+const tomSamplerBuffers = {};
 let currentVolume = 0.5;
 let samplersDisponibles = [];
 let tomEditando = null, tomSamplerEditando = null, samplerSeleccionado = null;
@@ -62,106 +78,92 @@ let _modoEdicionActivo = false, _modoEdicionSamplers = false;
 Object.defineProperty(window, 'modoEdicionActivo', { get: () => _modoEdicionActivo, set: v => { _modoEdicionActivo = v; } });
 Object.defineProperty(window, 'modoEdicionSamplers', { get: () => _modoEdicionSamplers, set: v => { _modoEdicionSamplers = v; } });
 
-// Persistencia
-const guardarMapeoLocal = () => localStorage.setItem('pianoChampeteroKeyMap', JSON.stringify(keyToTomId));
-const cargarMapeoLocal = () => {
+// Persistence
+const saveKeyMapping = () => localStorage.setItem('pianoChampeteroKeyMap', JSON.stringify(keyToTomId));
+const loadKeyMapping = () => {
   const data = localStorage.getItem('pianoChampeteroKeyMap');
   if (data) {
     Object.keys(keyToTomId).forEach(k => delete keyToTomId[k]);
     Object.entries(JSON.parse(data)).forEach(([k, v]) => keyToTomId[k] = v);
   }
 };
-const guardarSamplersLocal = () => {
-  // Guardar solo el nombre del archivo (sin carpeta)
-  const soloNombre = {};
+const saveSamplers = () => {
+  const onlyName = {};
   Object.keys(tomAudioMap).forEach(k => {
-    const nombre = tomAudioMap[k] ? tomAudioMap[k].split('/').pop() : '';
-    soloNombre[k] = nombre;
+    const name = tomAudioMap[k] ? tomAudioMap[k].split('/').pop() : '';
+    onlyName[k] = name;
   });
   try {
-    localStorage.setItem('pianoChampeteroSamplers', JSON.stringify(soloNombre));
+    localStorage.setItem('pianoChampeteroSamplers', JSON.stringify(onlyName));
   } catch (e) {
-    // En producción, ignorar errores de almacenamiento
+    // Ignore storage errors in production
   }
 };
 
-// Guardar samplers automáticamente al salir o recargar la página
-window.addEventListener('beforeunload', guardarSamplersLocal);
+// Save samplers automatically on page unload
+window.addEventListener('beforeunload', saveSamplers);
 
-// Carga dinámica de samplers
-async function cargarSamplersDisponibles() {
-  // Siempre obtener la lista dinámica de archivos en sounds/ (funciona en servidores que permiten listar directorios)
-  let listaArchivos = [];
-  try {
-    const res = await fetch('sounds/');
-    const text = await res.text();
-    listaArchivos = Array.from(text.matchAll(/href="([^"]+\.(?:wav|mp3|WAV|MP3|wma|WMA))"/gi)).map(m => m[1].startsWith('sounds/') ? m[1].slice(7) : m[1]);
-  } catch (e) {
-    // Si falla, dejar la lista vacía (no mostrar nada)
-    listaArchivos = [];
-  }
-  samplersDisponibles = listaArchivos;
-  // Solo volver al default si el archivo realmente no existe (ignorando mayúsculas/minúsculas)
-  const archivosDisponibles = new Map(samplersDisponibles.map(f => [f.toLowerCase(), f]));
+// Load samplers from fixed variable
+async function loadAvailableSamplers() {
+  samplersDisponibles = samplerList;
+  const availableFiles = new Map(samplersDisponibles.map(f => [f.toLowerCase(), f]));
   Object.keys(tomAudioMap).forEach(tomId => {
-    let nombre = tomAudioMap[tomId] ? tomAudioMap[tomId].split('/').pop() : '';
-    if (!nombre) {
-      tomAudioMap[tomId] = TOM_AUDIO_DEFAULTS[tomId];
+    let name = tomAudioMap[tomId] ? tomAudioMap[tomId].split('/').pop() : '';
+    if (!name) {
+      tomAudioMap[tomId] = tomAudioDefaults[tomId];
       return;
     }
-    // Si el nombre existe (ignorando mayúsculas/minúsculas), usar el nombre real del archivo
-    const nombreReal = archivosDisponibles.get(nombre.toLowerCase());
-    if (nombreReal) {
-      tomAudioMap[tomId] = nombreReal;
+    const realName = availableFiles.get(name.toLowerCase());
+    if (realName) {
+      tomAudioMap[tomId] = realName;
     }
   });
 }
 
-// Precarga de buffers
-async function precargarTodosLosToms() {
-  await cargarSamplersDisponibles();
-  await Promise.all(Object.entries(tomAudioMap).map(async ([tomId, nombreArchivo]) => {
-    if (nombreArchivo) {
+// Preload all tom sampler buffers
+async function preloadAllSamplers() {
+  await loadAvailableSamplers();
+  await Promise.all(Object.entries(tomAudioMap).map(async ([tomId, fileName]) => {
+    if (fileName) {
       try {
-        tomBuffers[tomId] = await cargarBufferAudio('sounds/' + nombreArchivo);
-      } catch { tomBuffers[tomId] = null; }
-    } else tomBuffers[tomId] = null;
+        tomSamplerBuffers[tomId] = await loadSamplerBuffer('samplers/' + fileName);
+      } catch { tomSamplerBuffers[tomId] = null; }
+    } else tomSamplerBuffers[tomId] = null;
   }));
 }
 
-// Audio
-async function cargarBufferAudio(url) {
+// Sampler audio
+async function loadSamplerBuffer(url) {
   const response = await fetch(url);
   const arrayBuffer = await response.arrayBuffer();
   return await audioCtx.decodeAudioData(arrayBuffer);
 }
-function reproducirTom(tomId) {
+function playTomSampler(tomId) {
   if (window.modoEdicionActivo || window.modoEdicionSamplers) return;
-  const buffer = tomBuffers[tomId];
+  const buffer = tomSamplerBuffers[tomId];
   if (!buffer) return;
-  // Refuerza la lectura del volumen actual del slider si existe
-  const sliderVolumen = document.getElementById('volumenSlider');
-  let volumenActual = currentVolume;
-  if (sliderVolumen) volumenActual = +sliderVolumen.value;
+  const slider = document.getElementById('volumenSlider');
+  let volume = currentVolume;
+  if (slider) volume = +slider.value;
   const source = audioCtx.createBufferSource();
   const gainNode = audioCtx.createGain();
-  gainNode.gain.value = volumenActual;
+  gainNode.gain.value = volume;
   source.buffer = buffer;
   source.connect(gainNode).connect(audioCtx.destination);
   source.start();
 }
-async function activarTom(tomId) {
+async function activateTomSampler(tomId) {
   if (window.modoEdicionActivo || window.modoEdicionSamplers) return;
-  const boton = document.getElementById(tomId);
-  if (!boton) return;
-  boton.classList.add('active');
+  const button = document.getElementById(tomId);
+  if (!button) return;
+  button.classList.add('active');
   if (audioCtx.state === 'suspended') {
     await audioCtx.resume();
-    requestAnimationFrame(() => reproducirTom(tomId));
+    requestAnimationFrame(() => playTomSampler(tomId));
   } else {
-    requestAnimationFrame(() => reproducirTom(tomId));
+    requestAnimationFrame(() => playTomSampler(tomId));
   }
-  setTimeout(() => boton.classList.remove('active'), 60);
+  setTimeout(() => button.classList.remove('active'), 60);
 }
 
 // --- Inicialización y eventos ---
@@ -213,14 +215,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 try { window._previewSource.stop(); } catch { }
               }
               try {
-                // Previsualizar usando la ruta correcta
-                const ruta = 'sounds/' + nombreArchivo;
-                // Reanudar contexto si está suspendido (algunos navegadores requieren interacción)
+              // Preview using the correct sampler path
+                const path = 'samplers/' + nombreArchivo;
                 if (audioCtx.state !== 'running') {
                   await audioCtx.resume();
                 }
-                // Cargar y reproducir el buffer
-                const buffer = await cargarBufferAudio(ruta);
+                const buffer = await loadSamplerBuffer(path);
                 const source = audioCtx.createBufferSource();
                 const gainNode = audioCtx.createGain();
                 gainNode.gain.value = currentVolume;
@@ -288,8 +288,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
   // Cargar configuración local
-  cargarMapeoLocal();
-  await precargarTodosLosToms();
+  await preloadAllSamplers();
 
   // Asignar letras a los botones
   Object.entries(keyToTomId).forEach(([key, tomId]) => {
@@ -399,8 +398,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tomId = tomSamplerEditando.id;
     const nombre = samplerSeleccionado;
     tomAudioMap[tomId] = nombre;
-    tomBuffers[tomId] = await cargarBufferAudio('sounds/' + nombre);
-    guardarSamplersLocal();
+    tomSamplerBuffers[tomId] = await loadSamplerBuffer('samplers/' + nombre);
+    saveSamplers();
     modalSampler.style.display = 'none';
     tomSamplerEditando = null;
     samplerSeleccionado = null;
@@ -426,7 +425,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         break;
       }
     }
-    guardarMapeoLocal();
+    // guardarMapeoLocal(); // Eliminado: función no existe
     modal.style.display = 'none';
     tomEditando = null;
     editarBtn.disabled = false;
@@ -456,7 +455,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tomId = keyToTomId[e.key.toLowerCase()];
     if (tomId) {
       e.preventDefault();
-      await activarTom(tomId);
+      await activateTomSampler(tomId);
     }
   });
 
@@ -468,7 +467,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         return;
       }
-      await activarTom(tomId);
+      await activateTomSampler(tomId);
     });
   });
 
@@ -476,7 +475,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('focus', async () => {
     if (audioCtx.state === 'suspended') await audioCtx.resume();
     // Recargar buffers para evitar bug de volumen bajo
-    await precargarTodosLosToms();
+    await preloadAllSamplers();
   });
 
   document.addEventListener('click', () => { if (audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
@@ -486,8 +485,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (anioFooter) anioFooter.textContent = new Date().getFullYear();
 
   // Botón de guardar sonidos
-  const guardarSonidosBtn = document.getElementById('guardarSamplerBtn');
-  guardarSonidosBtn.addEventListener('click', () => {
-    guardarSamplersLocal();
+  const saveSamplersBtn = document.getElementById('guardarSamplerBtn');
+  saveSamplersBtn.addEventListener('click', () => {
+    saveSamplers();
   });
 });
