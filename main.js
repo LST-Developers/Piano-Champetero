@@ -79,10 +79,14 @@ function reproducirTom(tomId) {
   if (window.modoEdicionActivo || window.modoEdicionSamplers) return;
   const buffer = tomBuffers[tomId];
   if (!buffer) return;
+  // Refuerza la lectura del volumen actual del slider si existe
+  const sliderVolumen = document.getElementById('volumenSlider');
+  let volumenActual = currentVolume;
+  if (sliderVolumen) volumenActual = +sliderVolumen.value;
   const source = audioCtx.createBufferSource();
   const gainNode = audioCtx.createGain();
+  gainNode.gain.value = volumenActual;
   source.buffer = buffer;
-  gainNode.gain.value = currentVolume;
   source.connect(gainNode).connect(audioCtx.destination);
   source.start();
 }
@@ -102,17 +106,20 @@ async function activarTom(tomId) {
 
 // --- Inicialización y eventos ---
 document.addEventListener('DOMContentLoaded', async () => {
+  // No reanudar el contexto de audio automáticamente, solo tras interacción del usuario
   // Cargar barra de navegación y resaltar enlace actual
-  fetch('nav.html').then(res => res.text()).then(html => {
-    const navContainer = document.getElementById('nav-container');
-    if (navContainer) {
-      navContainer.innerHTML = html;
-      const path = window.location.pathname.split('/').pop() || 'index.html';
-      navContainer.querySelectorAll('a[href]').forEach(link => {
-        if (link.getAttribute('href') === path) link.classList.add('active');
-      });
-    }
-  });
+  fetch('nav.html')
+    .then(res => res.text())
+    .then(html => {
+      const navContainer = document.getElementById('nav-container');
+      if (navContainer) {
+        navContainer.innerHTML = html;
+        const path = window.location.pathname.split('/').pop() || 'index.html';
+        navContainer.querySelectorAll('a[href]').forEach(link => {
+          if (link.getAttribute('href') === path) link.classList.add('active');
+        });
+      }
+    });
 
   // Cargar configuración local
   cargarSamplersLocal();
@@ -341,7 +348,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       await activarTom(tomId);
     });
   });
-  document.addEventListener('click', () => { if (audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
+
+// Reanudar AudioContext y recargar buffer tras volver al navegador
+window.addEventListener('focus', async () => {
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
+  // Recargar buffers para evitar bug de volumen bajo
+  await precargarTodosLosToms();
+});
+
+document.addEventListener('click', () => { if (audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
 
   // Footer: actualiza solo el año en el span correspondiente
   const anioFooter = document.getElementById('anioFooter');
