@@ -1,92 +1,155 @@
-// Referencias globales para el modal de samplers
-const modalSampler = document.getElementById('modalEditarSampler');
-const listaSamplers = document.getElementById('listaSamplers');
-const guardarSamplerBtn = document.getElementById('guardarSamplerBtn');
-const cancelarSamplerBtn = document.getElementById('cancelarSamplerBtn');
-let tomSamplerEditando = null;
-let samplerSeleccionado = null;
-// Cargar barra de navegación desde nav.html en todas las páginas
-// Cargar barra de navegación desde nav.html en el contenedor #nav-container
-document.addEventListener('DOMContentLoaded', () => {
-  fetch('nav.html')
-    .then(res => res.text())
-    .then(html => {
-      const navContainer = document.getElementById('nav-container');
-      if (navContainer) navContainer.innerHTML = html;
+// --- Piano Champetero: Código compacto y limpio ---
 
-      // Resaltar el enlace de la página actual
-      const path = window.location.pathname.split('/').pop() || 'index.html';
-      const navLinks = navContainer.querySelectorAll('a[href]');
-      navLinks.forEach(link => {
-        if (link.getAttribute('href') === path) {
-          link.classList.add('active');
-        }
-      });
-    });
-});
-// Lista de samplers disponibles (se genera dinámicamente)
-// Utilidad para normalizar rutas de audio y evitar duplicados de 'sounds/'
-function normalizarRutaAudio(ruta) {
+// Utilidades
+const normalizarRutaAudio = ruta => {
   if (!ruta) return '';
-  ruta = ruta.replace(/\\+/g, '/'); // barras invertidas a /
-  ruta = ruta.replace(/\/+/g, '/');  // dobles slashes normales a uno solo
-  ruta = ruta.replace(/(sounds\/)+/i, 'sounds/');
-  if (!ruta.startsWith('sounds/')) ruta = 'sounds/' + ruta;
-  return ruta;
-}
+  ruta = ruta.replace(/\\+/g, '/').replace(/\/+/g, '/').replace(/(sounds\/)+/i, 'sounds/');
+  return ruta.startsWith('sounds/') ? ruta : 'sounds/' + ruta;
+};
+
+// Estado global
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const tomAudioMap = {
+  tom1: 'sounds/pitico medio.wav', tom2: 'sounds/perro bajo.WAV', tom3: 'sounds/PON1.wav',
+  tom4: 'sounds/SKTAC.WAV', tom5: 'sounds/Y.wav', tom6: 'sounds/F4.wav',
+  tom7: 'sounds/Pitico.wav', tom8: 'sounds/SK2.WAV', tom9: 'sounds/WARA2.wav'
+};
+const keyToTomId = { q: 'tom1', w: 'tom2', e: 'tom3', a: 'tom4', s: 'tom5', d: 'tom6', z: 'tom7', x: 'tom8', c: 'tom9' };
+const tomBuffers = {};
+let currentVolume = 0.5;
 let samplersDisponibles = [];
+let tomEditando = null, tomSamplerEditando = null, samplerSeleccionado = null;
+let _modoEdicionActivo = false, _modoEdicionSamplers = false;
+Object.defineProperty(window, 'modoEdicionActivo', { get: () => _modoEdicionActivo, set: v => { _modoEdicionActivo = v; } });
+Object.defineProperty(window, 'modoEdicionSamplers', { get: () => _modoEdicionSamplers, set: v => { _modoEdicionSamplers = v; } });
+
+// Persistencia
+const guardarMapeoLocal = () => localStorage.setItem('pianoChampeteroKeyMap', JSON.stringify(keyToTomId));
+const cargarMapeoLocal = () => {
+  const data = localStorage.getItem('pianoChampeteroKeyMap');
+  if (data) {
+    Object.keys(keyToTomId).forEach(k => delete keyToTomId[k]);
+    Object.entries(JSON.parse(data)).forEach(([k, v]) => keyToTomId[k] = v);
+  }
+};
+const guardarSamplersLocal = () => localStorage.setItem('pianoChampeteroSamplers', JSON.stringify(tomAudioMap));
+const cargarSamplersLocal = () => {
+  const data = localStorage.getItem('pianoChampeteroSamplers');
+  if (data) Object.keys(tomAudioMap).forEach(k => { if (JSON.parse(data)[k]) tomAudioMap[k] = normalizarRutaAudio(JSON.parse(data)[k]); });
+};
+
+// Carga dinámica de samplers
 async function cargarSamplersDisponibles() {
   try {
     const res = await fetch('sounds/');
     const text = await res.text();
-    samplersDisponibles = Array.from(text.matchAll(/href="([^"]+\.(?:wav|mp3|WAV|MP3))"/gi))
-      .map(m => {
-        let name = decodeURIComponent(m[1]);
-        // Si el nombre ya tiene el prefijo 'sounds/', quítalo
-        if (name.startsWith('sounds/')) name = name.slice(7);
-        return name;
-      });
-  } catch (e) {
-    console.error('Error cargando samplers:', e);
+    samplersDisponibles = Array.from(text.matchAll(/href="([^"]+\.(?:wav|mp3|WAV|MP3))"/gi)).map(m => m[1].startsWith('sounds/') ? m[1].slice(7) : m[1]);
+  } catch {
     samplersDisponibles = [
-      'pitico medio.wav',
-      'perro bajo.WAV',
-      'PON1.wav',
-      'SKTAC.WAV',
-      'Y.wav',
-      'F4.wav',
-      'Pitico.wav',
-      'SK2.WAV',
-      'WARA2.wav',
-      'Golpe SK5.wav',
-      'Lazer.wav',
-      'Leon.wav',
-      'SK1.WAV',
-      'SKTUN.WAV'
+      'pitico medio.wav','perro bajo.WAV','PON1.wav','SKTAC.WAV','Y.wav','F4.wav','Pitico.wav','SK2.WAV','WARA2.wav','Golpe SK5.wav','Lazer.wav','Leon.wav','SK1.WAV','SKTUN.WAV'
     ];
   }
-  // Limpiar mapeo de toms para que solo apunten a archivos existentes
   const archivosDisponibles = new Set(samplersDisponibles.map(f => f.toLowerCase()));
   Object.keys(tomAudioMap).forEach(tomId => {
     const ruta = tomAudioMap[tomId];
-    if (ruta) {
-      const nombre = ruta.split('/').pop().toLowerCase();
-      if (!archivosDisponibles.has(nombre)) {
-        // Si el archivo ya no existe, asignar null
-        tomAudioMap[tomId] = null;
-      }
-    }
+    if (ruta && !archivosDisponibles.has(ruta.split('/').pop().toLowerCase())) tomAudioMap[tomId] = null;
   });
-  // Si hay toms sin sampler asignado, asignar el primero disponible (si existe)
   Object.keys(tomAudioMap).forEach((tomId, idx) => {
-    if (!tomAudioMap[tomId] && samplersDisponibles[idx]) {
-      tomAudioMap[tomId] = normalizarRutaAudio(samplersDisponibles[idx]);
-    }
+    if (!tomAudioMap[tomId] && samplersDisponibles[idx]) tomAudioMap[tomId] = normalizarRutaAudio(samplersDisponibles[idx]);
   });
 }
 
+// Precarga de buffers
+async function precargarTodosLosToms() {
+  await cargarSamplersDisponibles();
+  await Promise.all(Object.entries(tomAudioMap).map(async ([tomId, audioUrl]) => {
+    if (audioUrl) {
+      try {
+        tomBuffers[tomId] = await cargarBufferAudio(normalizarRutaAudio(audioUrl));
+      } catch { tomBuffers[tomId] = null; }
+    } else tomBuffers[tomId] = null;
+  }));
+}
 
-  // Referencias a botones de edición
+// Audio
+async function cargarBufferAudio(url) {
+  const response = await fetch(url);
+  const arrayBuffer = await response.arrayBuffer();
+  return await audioCtx.decodeAudioData(arrayBuffer);
+}
+function reproducirTom(tomId) {
+  if (window.modoEdicionActivo || window.modoEdicionSamplers) return;
+  const buffer = tomBuffers[tomId];
+  if (!buffer) return;
+  const source = audioCtx.createBufferSource();
+  const gainNode = audioCtx.createGain();
+  source.buffer = buffer;
+  gainNode.gain.value = currentVolume;
+  source.connect(gainNode).connect(audioCtx.destination);
+  source.start();
+}
+function activarTom(tomId) {
+  if (window.modoEdicionActivo || window.modoEdicionSamplers) return;
+  const boton = document.getElementById(tomId);
+  if (!boton) return;
+  boton.classList.add('active');
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().then(() => requestAnimationFrame(() => reproducirTom(tomId)));
+  } else {
+    requestAnimationFrame(() => reproducirTom(tomId));
+  }
+  setTimeout(() => boton.classList.remove('active'), 60);
+}
+
+// --- Inicialización y eventos ---
+document.addEventListener('DOMContentLoaded', async () => {
+  // Cargar barra de navegación y resaltar enlace actual
+  fetch('nav.html').then(res => res.text()).then(html => {
+    const navContainer = document.getElementById('nav-container');
+    if (navContainer) {
+      navContainer.innerHTML = html;
+      const path = window.location.pathname.split('/').pop() || 'index.html';
+      navContainer.querySelectorAll('a[href]').forEach(link => {
+        if (link.getAttribute('href') === path) link.classList.add('active');
+      });
+    }
+  });
+
+  // Cargar configuración local
+  cargarSamplersLocal();
+  cargarMapeoLocal();
+  await precargarTodosLosToms();
+
+  // Asignar letras a los botones
+  Object.entries(keyToTomId).forEach(([key, tomId]) => {
+    const boton = document.getElementById(tomId);
+    if (boton) {
+      const span = boton.querySelector('.battery__tom-key');
+      if (span) span.textContent = key.toUpperCase();
+    }
+  });
+
+  // Volumen
+  const sliderVolumen = document.getElementById('volumenSlider');
+  const labelPorcentaje = document.getElementById('volumenPorcentaje');
+  if (sliderVolumen) {
+    const actualizarLabel = v => labelPorcentaje && (labelPorcentaje.textContent = Math.round(v * 100) + '%');
+    if (labelPorcentaje) actualizarLabel(sliderVolumen.value);
+    sliderVolumen.addEventListener('input', e => {
+      currentVolume = +e.target.value;
+      actualizarLabel(currentVolume);
+    });
+    sliderVolumen.addEventListener('wheel', e => {
+      e.preventDefault();
+      const step = parseFloat(sliderVolumen.step) || 0.01;
+      let nuevoValor = parseFloat(sliderVolumen.value) + (e.deltaY < 0 ? step : -step);
+      nuevoValor = Math.max(parseFloat(sliderVolumen.min), Math.min(parseFloat(sliderVolumen.max), nuevoValor));
+      sliderVolumen.value = nuevoValor;
+      sliderVolumen.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+
+  // Edición
   const editarBtn = document.getElementById('editarLetrasBtn');
   const editarSamplersBtn = document.getElementById('editarSamplersBtn');
   const editIcons = document.querySelectorAll('.edit-icon');
@@ -94,27 +157,27 @@ async function cargarSamplersDisponibles() {
   const input = document.getElementById('nuevaTeclaInput');
   const guardarBtn = document.getElementById('guardarTeclaBtn');
   const cancelarBtn = document.getElementById('cancelarTeclaBtn');
-  let tomEditando = null;
+  const modalSampler = document.getElementById('modalEditarSampler');
+  const listaSamplers = document.getElementById('listaSamplers');
+  const guardarSamplerBtn = document.getElementById('guardarSamplerBtn');
+  const cancelarSamplerBtn = document.getElementById('cancelarSamplerBtn');
 
-  // Oculta los íconos de editar al inicio
+  // Ocultar íconos de edición al inicio
   editIcons.forEach(icon => icon.style.display = 'none');
+  const actualizarVisibilidadIconosEdicion = () => editIcons.forEach(icon => icon.style.display = (window.modoEdicionActivo || window.modoEdicionSamplers) ? 'inline-block' : 'none');
 
-  // Actualiza visibilidad de íconos según modo
-  function actualizarVisibilidadIconosEdicion() {
-    editIcons.forEach(icon => icon.style.display = (window.modoEdicionActivo || window.modoEdicionSamplers) ? 'inline-block' : 'none');
-  }
-  actualizarVisibilidadIconosEdicion();
-
-  // Botón editar letras
-  function actualizarTextoBotonEdicion() {
+  // Botones de edición
+  const actualizarTextoBotonEdicion = () => {
     editarBtn.textContent = window.modoEdicionActivo ? 'Desactivar edición de teclas' : 'Editar letras';
-    if (window.modoEdicionActivo) {
-      editarBtn.classList.add('modo-edicion-activa');
-    } else {
-      editarBtn.classList.remove('modo-edicion-activa');
-    }
-  }
+    editarBtn.classList.toggle('modo-edicion-activa', window.modoEdicionActivo);
+  };
+  const actualizarTextoBotonEdicionSamplers = () => {
+    editarSamplersBtn.textContent = window.modoEdicionSamplers ? 'Desactivar edición de samplers' : 'Editar samplers';
+    editarSamplersBtn.classList.toggle('modo-edicion-activa', window.modoEdicionSamplers);
+  };
   actualizarTextoBotonEdicion();
+  actualizarTextoBotonEdicionSamplers();
+
   editarBtn.addEventListener('click', () => {
     window.modoEdicionActivo = !window.modoEdicionActivo;
     if (window.modoEdicionActivo) {
@@ -137,15 +200,6 @@ async function cargarSamplersDisponibles() {
       tomSamplerEditando = null;
     }
   });
-  function actualizarTextoBotonEdicionSamplers() {
-    editarSamplersBtn.textContent = window.modoEdicionSamplers ? 'Desactivar edición de samplers' : 'Editar samplers';
-    if (window.modoEdicionSamplers) {
-      editarSamplersBtn.classList.add('modo-edicion-activa');
-    } else {
-      editarSamplersBtn.classList.remove('modo-edicion-activa');
-    }
-  }
-  actualizarTextoBotonEdicionSamplers();
   editarSamplersBtn.addEventListener('click', () => {
     window.modoEdicionSamplers = !window.modoEdicionSamplers;
     if (window.modoEdicionSamplers) {
@@ -169,7 +223,7 @@ async function cargarSamplersDisponibles() {
     }
   });
 
-  // Al hacer click en el ícono, abre el modal correspondiente
+  // Íconos de edición
   editIcons.forEach(icon => {
     icon.addEventListener('click', async e => {
       e.stopPropagation();
@@ -191,26 +245,20 @@ async function cargarSamplersDisponibles() {
           li.tabIndex = 0;
           li.className = 'sampler-item';
           li.addEventListener('click', async () => {
-            // Previsualizar sonido
             try {
-              const ruta = normalizarRutaAudio(fileName);
-              const buffer = await cargarBufferAudio(ruta);
+              const buffer = await cargarBufferAudio(normalizarRutaAudio(fileName));
               const source = audioCtx.createBufferSource();
               const gainNode = audioCtx.createGain();
               source.buffer = buffer;
               gainNode.gain.value = currentVolume;
               source.connect(gainNode).connect(audioCtx.destination);
               source.start();
-            } catch (e) {
-              console.error('No se pudo previsualizar el sampler:', e);
-            }
+            } catch {}
             listaSamplers.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
             li.classList.add('selected');
-            samplerSeleccionado = fileName; // Solo el nombre, nunca la ruta
+            samplerSeleccionado = fileName;
           });
-          li.addEventListener('keydown', e => {
-            if (e.key === 'Enter') li.click();
-          });
+          li.addEventListener('keydown', e => { if (e.key === 'Enter') li.click(); });
           listaSamplers.appendChild(li);
         });
         modalSampler.style.display = 'flex';
@@ -225,7 +273,7 @@ async function cargarSamplersDisponibles() {
     const ruta = normalizarRutaAudio(samplerSeleccionado);
     tomAudioMap[tomId] = ruta;
     tomBuffers[tomId] = await cargarBufferAudio(ruta);
-    guardarSamplersLocal(); // Guardar configuración de samplers
+    guardarSamplersLocal();
     modalSampler.style.display = 'none';
     tomSamplerEditando = null;
     samplerSeleccionado = null;
@@ -235,35 +283,14 @@ async function cargarSamplersDisponibles() {
     tomSamplerEditando = null;
     samplerSeleccionado = null;
   });
-  modalSampler.addEventListener('keydown', e => {
-    if (e.key === 'Escape') cancelarSamplerBtn.click();
-  });
+  modalSampler.addEventListener('keydown', e => { if (e.key === 'Escape') cancelarSamplerBtn.click(); });
 
-  // --- Utilidades para guardar y cargar mapeo de teclas ---
-  function guardarMapeoLocal() {
-    localStorage.setItem('pianoChampeteroKeyMap', JSON.stringify(keyToTomId));
-  }
-  function cargarMapeoLocal() {
-    const data = localStorage.getItem('pianoChampeteroKeyMap');
-    if (data) {
-      const obj = JSON.parse(data);
-      // Limpiar y copiar claves al objeto global
-      Object.keys(keyToTomId).forEach(k => delete keyToTomId[k]);
-      Object.entries(obj).forEach(([k, v]) => keyToTomId[k] = v);
-    }
-  }
-  // --- Guardar y cargar configuración de samplers ---
-  // (Definidas globalmente al final del archivo)
-
-
-
-  // Guardar nueva letra y persistir
+  // Guardar nueva letra
   guardarBtn.addEventListener('click', () => {
     const letra = input.value.trim().toUpperCase();
     if (!letra || letra.length !== 1) return input.focus();
     const spanKey = tomEditando.querySelector('.battery__tom-key');
     spanKey.textContent = letra;
-    // Actualiza el mapeo en JS
     const tomId = tomEditando.id;
     for (const [key, id] of Object.entries(keyToTomId)) {
       if (id === tomId) {
@@ -272,216 +299,41 @@ async function cargarSamplersDisponibles() {
         break;
       }
     }
-    guardarMapeoLocal(); // <-- Guarda en localStorage
+    guardarMapeoLocal();
     modal.style.display = 'none';
     tomEditando = null;
     editarBtn.disabled = false;
-    // No desactiva modo edición aquí
-    window.modoEdicionActivo = modoEdicionActivo; // <-- Sincroniza el estado global
+    window.modoEdicionActivo = modoEdicionActivo;
     document.body.classList.toggle('modo-edicion', modoEdicionActivo);
     editIcons.forEach(icon => icon.style.display = window.modoEdicionActivo ? 'inline-block' : 'none');
   });
-
-  // Cancelar edición
   cancelarBtn.addEventListener('click', () => {
     modal.style.display = 'none';
     tomEditando = null;
     editarBtn.disabled = false;
-    // No desactiva modo edición aquí
-    window.modoEdicionActivo = modoEdicionActivo; // <-- Sincroniza el estado global
+    window.modoEdicionActivo = modoEdicionActivo;
     document.body.classList.toggle('modo-edicion', modoEdicionActivo);
     editIcons.forEach(icon => icon.style.display = window.modoEdicionActivo ? 'inline-block' : 'none');
   });
-
-  // Permite cerrar el modal con Escape
   input.addEventListener('keydown', e => {
     if (e.key === 'Escape') cancelarBtn.click();
     if (e.key === 'Enter') guardarBtn.click();
   });
-// --- Batería Champetera: Audio instantáneo, código claro y documentado ---
 
-// --- Guardar y cargar configuración de samplers (definición global) ---
-function guardarSamplersLocal() {
-  localStorage.setItem('pianoChampeteroSamplers', JSON.stringify(tomAudioMap));
-}
-function cargarSamplersLocal() {
-  const data = localStorage.getItem('pianoChampeteroSamplers');
-  if (data) {
-    const obj = JSON.parse(data);
-    Object.keys(tomAudioMap).forEach(k => {
-      if (obj[k]) {
-        tomAudioMap[k] = normalizarRutaAudio(obj[k]);
-      }
-    });
-  }
-}
-
-// Contexto de audio global para reproducir sonidos
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-// Mapeo de IDs de toms a rutas de archivos de audio
-const tomAudioMap = {
-  tom1: 'sounds/pitico medio.wav',
-  tom2: 'sounds/perro bajo.WAV',
-  tom3: 'sounds/PON1.wav',
-  tom4: 'sounds/SKTAC.WAV',
-  tom5: 'sounds/Y.wav',
-  tom6: 'sounds/F4.wav',
-  tom7: 'sounds/Pitico.wav',
-  tom8: 'sounds/SK2.WAV',
-  tom9: 'sounds/WARA2.wav'
-};
-
-// Mapeo de teclas a IDs de toms
-const keyToTomId = {
-  q: 'tom1', w: 'tom2', e: 'tom3',
-  a: 'tom4', s: 'tom5', d: 'tom6',
-  z: 'tom7', x: 'tom8', c: 'tom9'
-};
-
-// Buffer de audio precargado para cada tom
-const tomBuffers = {};
-
-// Volumen global (0.0 a 1.0)
-let currentVolume = 0.5;
-
-/**
- * Descarga y decodifica un archivo de audio a un AudioBuffer
- * @param {string} url - Ruta del archivo de audio
- * @returns {Promise<AudioBuffer>}
- */
-async function cargarBufferAudio(url) {
-  const response = await fetch(url);
-  const arrayBuffer = await response.arrayBuffer();
-  return await audioCtx.decodeAudioData(arrayBuffer);
-}
-
-/**
- * Precarga todos los sonidos de los toms en memoria
- */
-async function precargarTodosLosToms() {
-  await cargarSamplersDisponibles(); // Asegura que el mapeo esté limpio y actualizado
-  await Promise.all(Object.entries(tomAudioMap).map(async ([tomId, audioUrl]) => {
-    if (audioUrl) {
-      try {
-        const ruta = normalizarRutaAudio(audioUrl);
-        tomBuffers[tomId] = await cargarBufferAudio(ruta);
-      } catch (e) {
-        tomBuffers[tomId] = null;
-        console.warn('No se pudo cargar el sampler para', tomId, audioUrl);
-      }
-    } else {
-      tomBuffers[tomId] = null;
-    }
-  }));
-}
-
-/**
- * Reproduce el sonido de un tom específico
- * @param {string} tomId - ID del tom a reproducir
- */
-function reproducirTom(tomId) {
-  // Refuerzo: bloquear absolutamente en ambos modos de edición
-  if (window.modoEdicionActivo || window.modoEdicionSamplers || modoEdicionActivo || modoEdicionSamplers) return;
-  const buffer = tomBuffers[tomId];
-  if (!buffer) return;
-  const source = audioCtx.createBufferSource();
-  const gainNode = audioCtx.createGain();
-  source.buffer = buffer;
-  gainNode.gain.value = currentVolume;
-  source.connect(gainNode).connect(audioCtx.destination);
-  source.start();
-}
-
-/**
- * Activa la animación y el sonido de un tom de forma optimizada
- * @param {string} tomId - ID del tom a activar
- */
-function activarTom(tomId) {
-  // Refuerzo: bloquear absolutamente en ambos modos de edición
-  if (window.modoEdicionActivo || window.modoEdicionSamplers || modoEdicionActivo || modoEdicionSamplers) return;
-  const boton = document.getElementById(tomId);
-  if (!boton) return;
-  boton.classList.add('active');
-  // Asegura que el contexto de audio esté activo antes de reproducir
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume().then(() => {
-      requestAnimationFrame(() => reproducirTom(tomId));
-    });
-  } else {
-    requestAnimationFrame(() => reproducirTom(tomId));
-  }
-  // Animación optimizada
-  setTimeout(() => boton.classList.remove('active'), 60);
-}
-
-// --- Inicialización y eventos ---
-document.addEventListener('DOMContentLoaded', async () => {
-  // Cargar configuración de samplers guardada (si existe)
-  cargarSamplersLocal();
-  // Precarga todos los sonidos
-  await precargarTodosLosToms();
-
-  // Al asignar letras a los botones, usa el mapeo actual
-  Object.entries(keyToTomId).forEach(([key, tomId]) => {
-    const boton = document.getElementById(tomId);
-    if (boton) {
-      const span = boton.querySelector('.battery__tom-key');
-      if (span) span.textContent = key.toUpperCase();
-    }
-  });
-
-  // Referencias a los controles de volumen
-  const sliderVolumen = document.getElementById('volumenSlider');
-  const labelPorcentaje = document.getElementById('volumenPorcentaje');
-
-  // Actualiza el porcentaje de volumen en pantalla
-  if (sliderVolumen && labelPorcentaje) {
-    const actualizarLabel = v => labelPorcentaje.textContent = Math.round(v * 100) + '%';
-    actualizarLabel(sliderVolumen.value);
-    sliderVolumen.addEventListener('input', e => {
-      currentVolume = +e.target.value;
-      actualizarLabel(currentVolume);
-    });
-    // Permite ajustar el volumen con la rueda del mouse
-    sliderVolumen.addEventListener('wheel', e => {
-      e.preventDefault();
-      const step = parseFloat(sliderVolumen.step) || 0.01;
-      let nuevoValor = parseFloat(sliderVolumen.value) + (e.deltaY < 0 ? step : -step);
-      nuevoValor = Math.max(parseFloat(sliderVolumen.min), Math.min(parseFloat(sliderVolumen.max), nuevoValor));
-      sliderVolumen.value = nuevoValor;
-      sliderVolumen.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-  } else if (sliderVolumen) {
-    sliderVolumen.addEventListener('input', e => currentVolume = +e.target.value);
-    sliderVolumen.addEventListener('wheel', e => {
-      e.preventDefault();
-      const step = parseFloat(sliderVolumen.step) || 0.01;
-      let nuevoValor = parseFloat(sliderVolumen.value) + (e.deltaY < 0 ? step : -step);
-      nuevoValor = Math.max(parseFloat(sliderVolumen.min), Math.min(parseFloat(sliderVolumen.max), nuevoValor));
-      sliderVolumen.value = nuevoValor;
-      sliderVolumen.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-  }
-
-  // Evento para activar toms con el teclado
+  // Eventos de activación
   document.addEventListener('keydown', e => {
-    // Si el modal de edición está visible o cualquier modo edición está activo, no activar el tom
     const modal = document.getElementById('modalEditarTecla');
-    if ((modal && modal.style.display === 'flex') || window.modoEdicionActivo || window.modoEdicionSamplers || modoEdicionActivo || modoEdicionSamplers) return;
+    if ((modal && modal.style.display === 'flex') || window.modoEdicionActivo || window.modoEdicionSamplers) return;
     const tomId = keyToTomId[e.key.toLowerCase()];
     if (tomId) {
       e.preventDefault();
       activarTom(tomId);
     }
   });
-
-  // Evento para activar toms con click
   Object.keys(tomAudioMap).forEach(tomId => {
     const boton = document.getElementById(tomId);
     if (boton) boton.addEventListener('click', e => {
-      // Si cualquier modo de edición está activo, no hacer nada (ni animación ni sonido)
-      if (window.modoEdicionActivo || window.modoEdicionSamplers || modoEdicionActivo || modoEdicionSamplers) {
+      if (window.modoEdicionActivo || window.modoEdicionSamplers) {
         e.stopPropagation();
         e.preventDefault();
         return;
@@ -489,30 +341,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       activarTom(tomId);
     });
   });
+  document.addEventListener('click', () => { if (audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
 
-  // Reanuda el contexto de audio en la primera interacción del usuario
-  document.addEventListener('click', () => {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-  }, { once: true });
-
-  // Actualiza solo el año automáticamente en el footer
-  const year = new Date().getFullYear();
-  const footerYear = document.getElementById('footerYear');
-  if (footerYear) {
-    // Mantiene la versión fija y actualiza solo el año
-    footerYear.textContent = `© ${year} Piano Champetero. Todos los derechos reservados. v.1.0`;
-  }
-});
-
-
-// Variables internas para evitar recursión infinita
-let _modoEdicionActivo = false;
-let _modoEdicionSamplers = false;
-Object.defineProperty(window, 'modoEdicionActivo', {
-  get: function() { return _modoEdicionActivo; },
-  set: function(val) { _modoEdicionActivo = val; }
-});
-Object.defineProperty(window, 'modoEdicionSamplers', {
-  get: function() { return _modoEdicionSamplers; },
-  set: function(val) { _modoEdicionSamplers = val; }
+  // Footer: actualiza solo el año en el span correspondiente
+  const anioFooter = document.getElementById('anioFooter');
+  if (anioFooter) anioFooter.textContent = new Date().getFullYear();
 });
