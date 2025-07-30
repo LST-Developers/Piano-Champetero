@@ -18,19 +18,16 @@ let tomAudioMap;
 (() => {
   tomAudioMap = { ...TOM_AUDIO_DEFAULTS };
   const dataSamplers = localStorage.getItem('pianoChampeteroSamplers');
-  console.log('[PianoChampetero] Cargando samplers desde localStorage:', dataSamplers);
   if (dataSamplers) {
     try {
       const parsed = JSON.parse(dataSamplers);
       Object.keys(tomAudioMap).forEach(k => {
-        // Si hay personalizado, úsalo; si no, deja el default
         if (parsed[k]) {
           tomAudioMap[k] = parsed[k];
         }
       });
-      console.log('[PianoChampetero] Samplers aplicados al iniciar:', tomAudioMap);
     } catch (e) {
-      console.error('[PianoChampetero] Error al parsear samplers:', e);
+      // Si hay error, ignorar y usar defaults
     }
   }
 })();
@@ -81,8 +78,11 @@ const guardarSamplersLocal = () => {
     const nombre = tomAudioMap[k] ? tomAudioMap[k].split('/').pop() : '';
     soloNombre[k] = nombre;
   });
-  localStorage.setItem('pianoChampeteroSamplers', JSON.stringify(soloNombre));
-  console.log('[PianoChampetero] Samplers guardados en localStorage:', soloNombre);
+  try {
+    localStorage.setItem('pianoChampeteroSamplers', JSON.stringify(soloNombre));
+  } catch (e) {
+    // En producción, ignorar errores de almacenamiento
+  }
 };
 
 // Guardar samplers automáticamente al salir o recargar la página
@@ -90,31 +90,39 @@ window.addEventListener('beforeunload', guardarSamplersLocal);
 
 // Carga dinámica de samplers
 async function cargarSamplersDisponibles() {
+  // En producción, no se puede listar archivos locales. Usar lista fija si fetch falla o no está en entorno local.
+  let listaArchivos = [
+    'pitico medio.wav', 'perro bajo.WAV', 'PON1.wav', 'SKTAC.WAV', 'Y.wav', 'F4.wav', 'Pitico.wav', 'SK2.WAV', 'WARA2.wav', 'Golpe SK5.wav', 'Lazer.wav', 'Leon.wav', 'SK1.WAV', 'SKTUN.WAV',
+    'D (2).wav', 'F2.wma', 'Smar 1.wav'
+  ];
   try {
-    const res = await fetch('sounds/');
-    const text = await res.text();
-    samplersDisponibles = Array.from(text.matchAll(/href="([^"]+\.(?:wav|mp3|WAV|MP3))"/gi)).map(m => m[1].startsWith('sounds/') ? m[1].slice(7) : m[1]);
-  } catch {
-    samplersDisponibles = [
-      'pitico medio.wav', 'perro bajo.WAV', 'PON1.wav', 'SKTAC.WAV', 'Y.wav', 'F4.wav', 'Pitico.wav', 'SK2.WAV', 'WARA2.wav', 'Golpe SK5.wav', 'Lazer.wav', 'Leon.wav', 'SK1.WAV', 'SKTUN.WAV'
-    ];
+    // Solo intentar fetch si estamos en localhost o entorno de desarrollo
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      const res = await fetch('sounds/');
+      const text = await res.text();
+      const encontrados = Array.from(text.matchAll(/href="([^"]+\.(?:wav|mp3|WAV|MP3))"/gi)).map(m => m[1].startsWith('sounds/') ? m[1].slice(7) : m[1]);
+      if (encontrados.length > 0) listaArchivos = encontrados;
+    }
+  } catch (e) {
+    // En producción, ignorar error y usar lista fija
   }
-  // Solo volver al default si el archivo realmente no existe
-  const archivosDisponibles = new Set(samplersDisponibles.map(f => f.toLowerCase()));
+  samplersDisponibles = listaArchivos;
+  // Solo volver al default si el archivo realmente no existe (ignorando mayúsculas/minúsculas)
+  const archivosDisponibles = new Map(samplersDisponibles.map(f => [f.toLowerCase(), f]));
   Object.keys(tomAudioMap).forEach(tomId => {
-    const nombre = tomAudioMap[tomId] ? tomAudioMap[tomId].split('/').pop() : '';
-    // Si el nombre está vacío o es null, poner default
+    let nombre = tomAudioMap[tomId] ? tomAudioMap[tomId].split('/').pop() : '';
     if (!nombre) {
       tomAudioMap[tomId] = TOM_AUDIO_DEFAULTS[tomId];
       return;
     }
-    // Si el nombre no existe en sounds, volver al default
-    if (!archivosDisponibles.has(nombre.toLowerCase())) {
+    // Si el nombre existe (ignorando mayúsculas/minúsculas), usar el nombre real del archivo
+    const nombreReal = archivosDisponibles.get(nombre.toLowerCase());
+    if (nombreReal) {
+      tomAudioMap[tomId] = nombreReal;
+    } else {
       tomAudioMap[tomId] = TOM_AUDIO_DEFAULTS[tomId];
     }
-    // Si el nombre existe, NO tocar el valor personalizado
   });
-  // Así nunca se pierde el sampler personalizado si existe el archivo
 }
 
 // Precarga de buffers
@@ -215,9 +223,11 @@ document.addEventListener('DOMContentLoaded', async () => {
               try {
                 // Previsualizar usando la ruta correcta
                 const ruta = 'sounds/' + nombreArchivo;
-                if (audioCtx.state === 'suspended') {
+                // Reanudar contexto si está suspendido (algunos navegadores requieren interacción)
+                if (audioCtx.state !== 'running') {
                   await audioCtx.resume();
                 }
+                // Cargar y reproducir el buffer
                 const buffer = await cargarBufferAudio(ruta);
                 const source = audioCtx.createBufferSource();
                 const gainNode = audioCtx.createGain();
@@ -226,7 +236,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 source.connect(gainNode).connect(audioCtx.destination);
                 source.start();
                 window._previewSource = source;
-              } catch (e) { /* ignorar error de carga */ }
+              } catch (e) {
+                // Si falla, no hacer nada (puede ser error de carga o contexto)
+              }
             });
             li.addEventListener('keydown', e => {
               if (e.key === 'Enter' || e.key === ' ') {
