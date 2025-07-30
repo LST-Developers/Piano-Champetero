@@ -1,5 +1,3 @@
-// Utilidades
-
 // Estado global
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const tomSamplersDefaults = {
@@ -8,7 +6,7 @@ const tomSamplersDefaults = {
   tom3: 'Pitico.wav',
   tom4: 'SKTAC.WAV',
   tom5: 'Y.wav',
-  tom6: 'F2.wma',
+  tom6: 'Golpe SK5.wav', // Asignar otro sampler existente o dejar vacío
   tom7: 'perro bajo.WAV',
   tom8: 'SK2.WAV',
   tom9: 'Smar 1.wav'
@@ -16,7 +14,6 @@ const tomSamplersDefaults = {
 
 const samplerList = [
   'D (2).wav',
-  'F2.wma',
   'F4.wav',
   'Golpe SK5.wav',
   'Lazer.wav',
