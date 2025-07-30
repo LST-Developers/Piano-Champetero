@@ -61,7 +61,10 @@
           ANUNCIO
         </div>
       </div> -->
-    <button id="editarLetrasBtn" class="editar-letras-btn">Editar letras</button>
+    <div class="edit-buttons-container">
+      <button id="editarLetrasBtn" class="editar-letras-btn">Editar letras</button>
+      <button id="editarSamplersBtn" class="editar-letras-btn">Editar samplers</button>
+    </div>
     <div class="battery">
       <button class="battery__tom battery__tom--small" id="tom1">
         <span class="battery__tom-key"></span>
@@ -107,6 +110,16 @@
         <div class="modal-actions">
           <button id="guardarTeclaBtn">Guardar</button>
           <button id="cancelarTeclaBtn">Cancelar</button>
+        </div>
+      </div>
+    </div>
+    <div id="modalEditarSampler" class="modal-editar-sampler" style="display:none;">
+      <div class="modal-content">
+        <h3>Selecciona un sampler</h3>
+        <ul id="listaSamplers" class="lista-samplers"></ul>
+        <div class="modal-actions">
+          <button id="guardarSamplerBtn">Guardar</button>
+          <button id="cancelarSamplerBtn">Cancelar</button>
         </div>
       </div>
     </div>

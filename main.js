@@ -17,12 +17,49 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 });
 // --- Estado global de edición ---
-let modoEdicionActivo = false;
 
 // --- Edición de letras de los toms ---
 document.addEventListener('DOMContentLoaded', () => {
-  // --- Edición de letras ---
+  const modalSampler = document.getElementById('modalEditarSampler');
+  const listaSamplers = document.getElementById('listaSamplers');
+  const guardarSamplerBtn = document.getElementById('guardarSamplerBtn');
+  const cancelarSamplerBtn = document.getElementById('cancelarSamplerBtn');
+  let tomSamplerEditando = null;
+  let samplerSeleccionado = null;
+  // Eliminar variables locales, usar solo window.modoEdicionActivo y window.modoEdicionSamplers
+
+  // Lista de samplers disponibles (se genera dinámicamente)
+  let samplersDisponibles = [];
+  async function cargarSamplersDisponibles() {
+    try {
+      const res = await fetch('sounds/');
+      const text = await res.text();
+      samplersDisponibles = Array.from(text.matchAll(/href="([^"]+\.(?:wav|mp3|WAV|MP3))"/gi)).map(m => decodeURIComponent(m[1]));
+    } catch (e) {
+      console.error('Error cargando samplers:', e);
+      samplersDisponibles = [
+        'pitico medio.wav',
+        'perro bajo.WAV',
+        'PON1.wav',
+        'SKTAC.WAV',
+        'Y.wav',
+        'F4.wav',
+        'Pitico.wav',
+        'SK2.WAV',
+        'WARA2.wav',
+        'Golpe SK5.wav',
+        'Lazer.wav',
+        'Leon.wav',
+        'PISTA PERREO.MP3',
+        'SK1.WAV',
+        'SKTUN.WAV'
+      ];
+    }
+  }
+
+  // Referencias a botones de edición
   const editarBtn = document.getElementById('editarLetrasBtn');
+  const editarSamplersBtn = document.getElementById('editarSamplersBtn');
   const editIcons = document.querySelectorAll('.edit-icon');
   const modal = document.getElementById('modalEditarTecla');
   const input = document.getElementById('nuevaTeclaInput');
@@ -33,36 +70,142 @@ document.addEventListener('DOMContentLoaded', () => {
   // Oculta los íconos de editar al inicio
   editIcons.forEach(icon => icon.style.display = 'none');
 
-  // Activa/desactiva modo edición y cambia el texto del botón
-  let modoEdicionActivo = false;
+  // Actualiza visibilidad de íconos según modo
+  function actualizarVisibilidadIconosEdicion() {
+    editIcons.forEach(icon => icon.style.display = (window.modoEdicionActivo || window.modoEdicionSamplers) ? 'inline-block' : 'none');
+  }
+  actualizarVisibilidadIconosEdicion();
+
+  // Botón editar letras
   function actualizarTextoBotonEdicion() {
-    editarBtn.textContent = modoEdicionActivo ? 'Desactivar edición de teclas' : 'Activar edición de teclas';
+    editarBtn.textContent = window.modoEdicionActivo ? 'Desactivar edición de teclas' : 'Editar letras';
+    if (window.modoEdicionActivo) {
+      editarBtn.classList.add('modo-edicion-activa');
+    } else {
+      editarBtn.classList.remove('modo-edicion-activa');
+    }
   }
   actualizarTextoBotonEdicion();
   editarBtn.addEventListener('click', () => {
-    modoEdicionActivo = !modoEdicionActivo;
-    window.modoEdicionActivo = modoEdicionActivo; // <-- Sincroniza el estado global
-    // Agrega o quita la clase al body
-    document.body.classList.toggle('modo-edicion', modoEdicionActivo);
-    editIcons.forEach(icon => icon.style.display = modoEdicionActivo ? 'inline-block' : 'none');
+    window.modoEdicionActivo = !window.modoEdicionActivo;
+    if (window.modoEdicionActivo) {
+      window.modoEdicionSamplers = false;
+      editarSamplersBtn.classList.remove('modo-edicion-activa');
+    }
+    document.body.classList.toggle('modo-edicion', window.modoEdicionActivo);
+    actualizarVisibilidadIconosEdicion();
     editarBtn.disabled = false;
+    editarSamplersBtn.disabled = false;
     actualizarTextoBotonEdicion();
-    // Si se desactiva el modo edición, cierra el modal si está abierto
-    if (!modoEdicionActivo && modal.style.display === 'flex') {
+    actualizarTextoBotonEdicionSamplers();
+    editarSamplersBtn.textContent = 'Editar samplers';
+    if (!window.modoEdicionActivo && modal.style.display === 'flex') {
+      modal.style.display = 'none';
+      tomEditando = null;
+    }
+    if (window.modoEdicionActivo && modalSampler.style.display === 'flex') {
+      modalSampler.style.display = 'none';
+      tomSamplerEditando = null;
+    }
+  });
+  function actualizarTextoBotonEdicionSamplers() {
+    editarSamplersBtn.textContent = window.modoEdicionSamplers ? 'Desactivar edición de samplers' : 'Editar samplers';
+    if (window.modoEdicionSamplers) {
+      editarSamplersBtn.classList.add('modo-edicion-activa');
+    } else {
+      editarSamplersBtn.classList.remove('modo-edicion-activa');
+    }
+  }
+  actualizarTextoBotonEdicionSamplers();
+  editarSamplersBtn.addEventListener('click', () => {
+    window.modoEdicionSamplers = !window.modoEdicionSamplers;
+    if (window.modoEdicionSamplers) {
+      window.modoEdicionActivo = false;
+      editarBtn.classList.remove('modo-edicion-activa');
+    }
+    document.body.classList.toggle('modo-edicion', window.modoEdicionSamplers);
+    actualizarVisibilidadIconosEdicion();
+    editarSamplersBtn.disabled = false;
+    editarBtn.disabled = false;
+    actualizarTextoBotonEdicionSamplers();
+    actualizarTextoBotonEdicion();
+    editarBtn.textContent = 'Editar letras';
+    if (!window.modoEdicionSamplers && modalSampler.style.display === 'flex') {
+      modalSampler.style.display = 'none';
+      tomSamplerEditando = null;
+    }
+    if (window.modoEdicionSamplers && modal.style.display === 'flex') {
       modal.style.display = 'none';
       tomEditando = null;
     }
   });
 
-  // Al hacer click en el ícono, abre el modal
+  // Al hacer click en el ícono, abre el modal correspondiente
   editIcons.forEach(icon => {
-    icon.addEventListener('click', e => {
+    icon.addEventListener('click', async e => {
       e.stopPropagation();
-      tomEditando = icon.closest('button');
-      modal.style.display = 'flex';
-      input.value = '';
-      input.focus();
+      const botonPad = icon.closest('button');
+      if (window.modoEdicionActivo) {
+        tomEditando = botonPad;
+        modal.style.display = 'flex';
+        input.value = '';
+        input.focus();
+      } else if (window.modoEdicionSamplers) {
+        tomSamplerEditando = botonPad;
+        samplerSeleccionado = null;
+        await cargarSamplersDisponibles();
+        listaSamplers.innerHTML = '';
+        samplersDisponibles.forEach(sampler => {
+          const fileName = sampler.split('/').pop();
+          const li = document.createElement('li');
+          li.textContent = fileName;
+          li.tabIndex = 0;
+          li.className = 'sampler-item';
+          li.addEventListener('click', async () => {
+            // Previsualizar sonido
+            try {
+              const buffer = await cargarBufferAudio('sounds/' + fileName);
+              const source = audioCtx.createBufferSource();
+              const gainNode = audioCtx.createGain();
+              source.buffer = buffer;
+              gainNode.gain.value = currentVolume;
+              source.connect(gainNode).connect(audioCtx.destination);
+              source.start();
+            } catch (e) {
+              console.error('No se pudo previsualizar el sampler:', e);
+            }
+            listaSamplers.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+            li.classList.add('selected');
+            samplerSeleccionado = fileName; // Solo el nombre, nunca la ruta
+          });
+          li.addEventListener('keydown', e => {
+            if (e.key === 'Enter') li.click();
+          });
+          listaSamplers.appendChild(li);
+        });
+        modalSampler.style.display = 'flex';
+      }
     });
+  });
+
+  // Guardar selección de sampler
+  guardarSamplerBtn.addEventListener('click', async () => {
+    if (!samplerSeleccionado || !tomSamplerEditando) return;
+    const tomId = tomSamplerEditando.id;
+    tomAudioMap[tomId] = 'sounds/' + samplerSeleccionado;
+    tomBuffers[tomId] = await cargarBufferAudio('sounds/' + samplerSeleccionado);
+    guardarSamplersLocal(); // Guardar configuración de samplers
+    modalSampler.style.display = 'none';
+    tomSamplerEditando = null;
+    samplerSeleccionado = null;
+  });
+  cancelarSamplerBtn.addEventListener('click', () => {
+    modalSampler.style.display = 'none';
+    tomSamplerEditando = null;
+    samplerSeleccionado = null;
+  });
+  modalSampler.addEventListener('keydown', e => {
+    if (e.key === 'Escape') cancelarSamplerBtn.click();
   });
 
   // --- Utilidades para guardar y cargar mapeo de teclas ---
@@ -78,6 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
       Object.entries(obj).forEach(([k, v]) => keyToTomId[k] = v);
     }
   }
+  // --- Guardar y cargar configuración de samplers ---
+  // (Definidas globalmente al final del archivo)
 
   // Cargar mapeo guardado al iniciar
   cargarMapeoLocal();
@@ -104,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // No desactiva modo edición aquí
     window.modoEdicionActivo = modoEdicionActivo; // <-- Sincroniza el estado global
     document.body.classList.toggle('modo-edicion', modoEdicionActivo);
-    editIcons.forEach(icon => icon.style.display = modoEdicionActivo ? 'inline-block' : 'none');
+    editIcons.forEach(icon => icon.style.display = window.modoEdicionActivo ? 'inline-block' : 'none');
   });
 
   // Cancelar edición
@@ -115,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // No desactiva modo edición aquí
     window.modoEdicionActivo = modoEdicionActivo; // <-- Sincroniza el estado global
     document.body.classList.toggle('modo-edicion', modoEdicionActivo);
-    editIcons.forEach(icon => icon.style.display = modoEdicionActivo ? 'inline-block' : 'none');
+    editIcons.forEach(icon => icon.style.display = window.modoEdicionActivo ? 'inline-block' : 'none');
   });
 
   // Permite cerrar el modal con Escape
@@ -125,6 +270,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 // --- Batería Champetera: Audio instantáneo, código claro y documentado ---
+
+// --- Guardar y cargar configuración de samplers (definición global) ---
+function guardarSamplersLocal() {
+  localStorage.setItem('pianoChampeteroSamplers', JSON.stringify(tomAudioMap));
+}
+function cargarSamplersLocal() {
+  const data = localStorage.getItem('pianoChampeteroSamplers');
+  if (data) {
+    const obj = JSON.parse(data);
+    Object.keys(tomAudioMap).forEach(k => {
+      if (obj[k]) tomAudioMap[k] = obj[k];
+    });
+  }
+}
 
 // Contexto de audio global para reproducir sonidos
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -180,6 +339,8 @@ async function precargarTodosLosToms() {
  * @param {string} tomId - ID del tom a reproducir
  */
 function reproducirTom(tomId) {
+  // Refuerzo: bloquear absolutamente en ambos modos de edición
+  if (window.modoEdicionActivo || window.modoEdicionSamplers || modoEdicionActivo || modoEdicionSamplers) return;
   const buffer = tomBuffers[tomId];
   if (!buffer) return;
   const source = audioCtx.createBufferSource();
@@ -195,8 +356,8 @@ function reproducirTom(tomId) {
  * @param {string} tomId - ID del tom a activar
  */
 function activarTom(tomId) {
-  // Refuerzo: no ejecutar nada si está activo el modo edición
-  if (window.modoEdicionActivo) return;
+  // Refuerzo: bloquear absolutamente en ambos modos de edición
+  if (window.modoEdicionActivo || window.modoEdicionSamplers || modoEdicionActivo || modoEdicionSamplers) return;
   const boton = document.getElementById(tomId);
   if (!boton) return;
   boton.classList.add('active');
@@ -214,6 +375,8 @@ function activarTom(tomId) {
 
 // --- Inicialización y eventos ---
 document.addEventListener('DOMContentLoaded', async () => {
+  // Cargar configuración de samplers guardada (si existe)
+  cargarSamplersLocal();
   // Precarga todos los sonidos
   await precargarTodosLosToms();
 
@@ -261,9 +424,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Evento para activar toms con el teclado
   document.addEventListener('keydown', e => {
-    // Si el modal de edición está visible o el modo edición está activo, no activar el tom
+    // Si el modal de edición está visible o cualquier modo edición está activo, no activar el tom
     const modal = document.getElementById('modalEditarTecla');
-    if ((modal && modal.style.display === 'flex') || window.modoEdicionActivo) return;
+    if ((modal && modal.style.display === 'flex') || window.modoEdicionActivo || window.modoEdicionSamplers || modoEdicionActivo || modoEdicionSamplers) return;
     const tomId = keyToTomId[e.key.toLowerCase()];
     if (tomId) {
       e.preventDefault();
@@ -275,8 +438,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   Object.keys(tomAudioMap).forEach(tomId => {
     const boton = document.getElementById(tomId);
     if (boton) boton.addEventListener('click', e => {
-      // Si el modo edición está activo, no hacer nada (ni animación ni sonido)
-      if (window.modoEdicionActivo) {
+      // Si cualquier modo de edición está activo, no hacer nada (ni animación ni sonido)
+      if (window.modoEdicionActivo || window.modoEdicionSamplers || modoEdicionActivo || modoEdicionSamplers) {
         e.stopPropagation();
         e.preventDefault();
         return;
@@ -299,9 +462,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// Exponer el estado de edición globalmente para el evento de click
-window.modoEdicionActivo = modoEdicionActivo;
+
+// Variables internas para evitar recursión infinita
+let _modoEdicionActivo = false;
+let _modoEdicionSamplers = false;
 Object.defineProperty(window, 'modoEdicionActivo', {
-  get: function() { return modoEdicionActivo; },
-  set: function(val) { modoEdicionActivo = val; }
+  get: function() { return _modoEdicionActivo; },
+  set: function(val) { _modoEdicionActivo = val; }
+});
+Object.defineProperty(window, 'modoEdicionSamplers', {
+  get: function() { return _modoEdicionSamplers; },
+  set: function(val) { _modoEdicionSamplers = val; }
 });

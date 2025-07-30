@@ -1,3 +1,87 @@
+@import url('reset.css');
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap');
+/* ===================== MODAL EDITAR SAMPLER ===================== */
+.modal-editar-sampler {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.35);
+  z-index: 1000;
+}
+.modal-editar-sampler .modal-content {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 2em 1.5em 1em 1.5em;
+  min-width: 260px;
+  max-width: 90vw;
+  text-align: center;
+}
+.modal-editar-sampler h3 {
+  margin-top: 0;
+  font-size: 1.2em;
+  color: var(--color-marron);
+}
+.modal-editar-sampler ul.lista-samplers {
+  list-style: none;
+  padding: 0;
+  margin: 1em 0 1.5em 0;
+  max-height: 220px;
+  overflow-y: auto;
+  text-align: left;
+}
+.modal-editar-sampler .sampler-item {
+  padding: 0.5em 1em;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-size: 1.1em;
+  color: #8B4513;
+}
+.modal-editar-sampler .sampler-item.selected,
+.modal-editar-sampler .sampler-item:hover {
+  background: var(--color-principal);
+  color: #fff;
+}
+/* Botones de edición alineados */
+.edit-buttons-container {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Unificación de botones de edición y acciones de modal */
+.editar-letras-btn,
+.editar-samplers-btn,
+.modal-actions button {
+  background: var(--color-principal);
+  color: #fff;
+  border: none;
+  border-radius: var(--borde-radius);
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+  box-shadow: var(--sombra-btn);
+  font-size: 1rem;
+  padding: 0.45em 1em;
+}
+.editar-letras-btn:hover,
+.editar-samplers-btn:hover,
+.editar-letras-btn.modo-edicion-activa,
+.editar-samplers-btn.modo-edicion-activa,
+.modal-actions button:hover {
+  background: var(--color-secundario);
+  color: #fff;
+  box-shadow: var(--sombra-btn-hover);
+}
+.modal-actions button {
+  padding: 0.5em 1.2em;
+  margin-bottom: 0;
+  font-size: 1rem;
+}
 /* ===================== SOBRE NOSOTROS ===================== */
 .sobre-nosotros {
   max-width: 700px;
@@ -73,9 +157,6 @@
   --sombra-btn-hover: 0 4px 16px rgba(0,0,0,0.14);
 }
 
-@import url('reset.css');
-@import url('https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap');
-
 /* ===================== BOTONES ===================== */
 .editar-letras-btn,
 .modal-actions button {
@@ -88,24 +169,11 @@
   cursor: pointer;
   transition: background 0.2s, box-shadow 0.2s;
 }
-.editar-letras-btn {
-  padding: 0.45em 1em;
-  font-size: 1.1em;
-  box-shadow: var(--sombra-btn);
-  margin-bottom: 1.2em;
-}
-.editar-letras-btn:hover,
-.modal-actions button:hover {
-  background: var(--color-secundario);
-  box-shadow: var(--sombra-btn-hover);
-}
+/* Acciones de modal alineadas */
 .modal-actions {
   display: flex;
   gap: 1em;
   justify-content: center;
-}
-.modal-actions button {
-  padding: 0.5em 1.2em;
 }
 
 /* ===================== MODAL ===================== */
