@@ -2,7 +2,7 @@
 
 // Estado global
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const tomAudioDefaults = {
+const tomSamplersDefaults = {
   tom1: 'D (2).wav',
   tom2: 'F4.wav',
   tom3: 'Pitico.wav',
@@ -36,7 +36,7 @@ const samplerList = [
 // Inicializar tomAudioMap con los datos de localStorage si existen, si no con los defaults
 let tomAudioMap;
 (function initTomAudioMap() {
-  tomAudioMap = { ...tomAudioDefaults };
+  tomAudioMap = { ...tomSamplersDefaults };
   const dataSamplers = localStorage.getItem('pianoChampeteroSamplers');
   if (dataSamplers) {
     try {
@@ -56,7 +56,7 @@ const keyToTomIdDefaults = { q: 'tom1', w: 'tom2', e: 'tom3', a: 'tom4', s: 'tom
 function resetSettings() {
   localStorage.removeItem('pianoChampeteroSamplers');
   localStorage.removeItem('pianoChampeteroKeyMap');
-  Object.keys(tomAudioMap).forEach(k => tomAudioMap[k] = tomAudioDefaults[k]);
+  Object.keys(tomAudioMap).forEach(k => tomAudioMap[k] = tomSamplersDefaults[k]);
   Object.keys(keyToTomId).forEach(k => delete keyToTomId[k]);
   Object.entries(keyToTomIdDefaults).forEach(([k, v]) => keyToTomId[k] = v);
   preloadAllSamplers().then(() => {
@@ -110,7 +110,7 @@ async function loadAvailableSamplers() {
   Object.keys(tomAudioMap).forEach(tomId => {
     let name = tomAudioMap[tomId] ? tomAudioMap[tomId].split('/').pop() : '';
     if (!name) {
-      tomAudioMap[tomId] = tomAudioDefaults[tomId];
+      tomAudioMap[tomId] = tomSamplersDefaults[tomId];
       return;
     }
     const realName = availableFiles.get(name.toLowerCase());
@@ -168,6 +168,8 @@ async function activateTomSampler(tomId) {
 
 // --- Inicialización y eventos ---
 document.addEventListener('DOMContentLoaded', async () => {
+  // Cargar mapeo de teclas personalizado si existe
+  loadKeyMapping();
   // Mostrar modal de edición de letra al hacer clic en el ícono de editar
   document.querySelectorAll('.edit-icon').forEach(icon => {
     icon.addEventListener('click', e => {
@@ -260,7 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       confirmarResetBtn.focus();
     });
     confirmarResetBtn.addEventListener('click', () => {
-      restablecerAjustes();
+      resetSettings();
       modalReset.style.display = 'none';
     });
     cancelarResetBtn.addEventListener('click', () => {
@@ -425,7 +427,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         break;
       }
     }
-    // guardarMapeoLocal(); // Eliminado: función no existe
+    saveKeyMapping();
     modal.style.display = 'none';
     tomEditando = null;
     editarBtn.disabled = false;
