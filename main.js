@@ -90,21 +90,15 @@ window.addEventListener('beforeunload', guardarSamplersLocal);
 
 // Carga dinámica de samplers
 async function cargarSamplersDisponibles() {
-  // En producción, no se puede listar archivos locales. Usar lista fija si fetch falla o no está en entorno local.
-  let listaArchivos = [
-    'pitico medio.wav', 'perro bajo.WAV', 'PON1.wav', 'SKTAC.WAV', 'Y.wav', 'F4.wav', 'Pitico.wav', 'SK2.WAV', 'WARA2.wav', 'Golpe SK5.wav', 'Lazer.wav', 'Leon.wav', 'SK1.WAV', 'SKTUN.WAV',
-    'D (2).wav', 'F2.wma', 'Smar 1.wav'
-  ];
+  // Siempre obtener la lista dinámica de archivos en sounds/ (funciona en servidores que permiten listar directorios)
+  let listaArchivos = [];
   try {
-    // Solo intentar fetch si estamos en localhost o entorno de desarrollo
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-      const res = await fetch('sounds/');
-      const text = await res.text();
-      const encontrados = Array.from(text.matchAll(/href="([^"]+\.(?:wav|mp3|WAV|MP3))"/gi)).map(m => m[1].startsWith('sounds/') ? m[1].slice(7) : m[1]);
-      if (encontrados.length > 0) listaArchivos = encontrados;
-    }
+    const res = await fetch('sounds/');
+    const text = await res.text();
+    listaArchivos = Array.from(text.matchAll(/href="([^"]+\.(?:wav|mp3|WAV|MP3|wma|WMA))"/gi)).map(m => m[1].startsWith('sounds/') ? m[1].slice(7) : m[1]);
   } catch (e) {
-    // En producción, ignorar error y usar lista fija
+    // Si falla, dejar la lista vacía (no mostrar nada)
+    listaArchivos = [];
   }
   samplersDisponibles = listaArchivos;
   // Solo volver al default si el archivo realmente no existe (ignorando mayúsculas/minúsculas)
@@ -119,8 +113,6 @@ async function cargarSamplersDisponibles() {
     const nombreReal = archivosDisponibles.get(nombre.toLowerCase());
     if (nombreReal) {
       tomAudioMap[tomId] = nombreReal;
-    } else {
-      tomAudioMap[tomId] = TOM_AUDIO_DEFAULTS[tomId];
     }
   });
 }
