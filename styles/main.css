@@ -32,6 +32,22 @@ body {
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+
+/* Botón de acción peligrosa (restablecer) usando la paleta del proyecto */
+.btn-peligro, .btn-reset {
+  background: var(--color-secundario) !important;
+  color: #fff !important;
+  border: none;
+  border-radius: var(--borde-radius, 8px);
+  font-weight: bold;
+  box-shadow: var(--sombra-btn, 0 2px 8px rgba(0,0,0,0.10));
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+}
+.btn-peligro:hover, .btn-reset:hover {
+  background: var(--color-principal) !important;
+  color: #fff !important;
+  box-shadow: var(--sombra-btn-hover, 0 4px 16px rgba(0,0,0,0.14));
+}
 main {
   flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: auto; padding: 1rem 0;
 }
