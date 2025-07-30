@@ -8,10 +8,48 @@ const normalizarRutaAudio = ruta => {
 // Estado global
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const tomAudioMap = {
-  tom1: 'sounds/pitico medio.wav', tom2: 'sounds/perro bajo.WAV', tom3: 'sounds/PON1.wav',
-  tom4: 'sounds/SKTAC.WAV', tom5: 'sounds/Y.wav', tom6: 'sounds/F4.wav',
-  tom7: 'sounds/Pitico.wav', tom8: 'sounds/SK2.WAV', tom9: 'sounds/WARA2.wav'
+  tom1: 'sounds/D (2).wav',
+  tom2: 'sounds/F4.wav',
+  tom3: 'sounds/Pitico.wav',
+  tom4: 'sounds/SKTAC.WAV',
+  tom5: 'sounds/Y.wav',
+  tom6: 'sounds/F2.wma',
+  tom7: 'sounds/perro bajo.WAV',
+  tom8: 'sounds/SK2.WAV',
+  tom9: 'sounds/Smar 1.wav'
 };
+const tomAudioMapDefaults = {
+  tom1: 'sounds/D (2).wav',
+  tom2: 'sounds/F4.wav',
+  tom3: 'sounds/Pitico.wav',
+  tom4: 'sounds/SKTAC.WAV',
+  tom5: 'sounds/Y.wav',
+  tom6: 'sounds/F2.wma',
+  tom7: 'sounds/perro bajo.WAV',
+  tom8: 'sounds/SK2.WAV',
+  tom9: 'sounds/Smar 1.wav'
+};
+const keyToTomIdDefaults = { q: 'tom1', w: 'tom2', e: 'tom3', a: 'tom4', s: 'tom5', d: 'tom6', z: 'tom7', x: 'tom8', c: 'tom9' };
+// Restablecer ajustes
+function restablecerAjustes() {
+  // Restaurar sonidos por defecto
+  Object.keys(tomAudioMap).forEach(k => tomAudioMap[k] = tomAudioMapDefaults[k]);
+  // Restaurar mapeo de teclas por defecto
+  Object.keys(keyToTomId).forEach(k => delete keyToTomId[k]);
+  Object.entries(keyToTomIdDefaults).forEach(([k, v]) => keyToTomId[k] = v);
+  guardarSamplersLocal();
+  guardarMapeoLocal();
+  precargarTodosLosToms().then(() => {
+    // Actualizar letras en los botones
+    Object.entries(keyToTomId).forEach(([key, tomId]) => {
+      const boton = document.getElementById(tomId);
+      if (boton) {
+        const span = boton.querySelector('.battery__tom-key');
+        if (span) span.textContent = key.toUpperCase();
+      }
+    });
+  });
+}
 const keyToTomId = { q: 'tom1', w: 'tom2', e: 'tom3', a: 'tom4', s: 'tom5', d: 'tom6', z: 'tom7', x: 'tom8', c: 'tom9' };
 const tomBuffers = {};
 let currentVolume = 0.5;
@@ -30,10 +68,26 @@ const cargarMapeoLocal = () => {
     Object.entries(JSON.parse(data)).forEach(([k, v]) => keyToTomId[k] = v);
   }
 };
-const guardarSamplersLocal = () => localStorage.setItem('pianoChampeteroSamplers', JSON.stringify(tomAudioMap));
+const guardarSamplersLocal = () => {
+  // Guardar solo el nombre del archivo (sin carpeta)
+  const soloNombre = {};
+  Object.keys(tomAudioMap).forEach(k => {
+    const ruta = tomAudioMap[k];
+    soloNombre[k] = ruta ? ruta.split('/').pop() : '';
+  });
+  localStorage.setItem('pianoChampeteroSamplers', JSON.stringify(soloNombre));
+};
 const cargarSamplersLocal = () => {
   const data = localStorage.getItem('pianoChampeteroSamplers');
-  if (data) Object.keys(tomAudioMap).forEach(k => { if (JSON.parse(data)[k]) tomAudioMap[k] = normalizarRutaAudio(JSON.parse(data)[k]); });
+  if (data) {
+    const parsed = JSON.parse(data);
+    Object.keys(tomAudioMap).forEach(k => {
+      if (parsed[k]) {
+        // Siempre reconstruir la ruta usando el nombre del archivo
+        tomAudioMap[k] = normalizarRutaAudio(parsed[k]);
+      }
+    });
+  }
 };
 
 // Carga dinámica de samplers
@@ -106,6 +160,109 @@ async function activarTom(tomId) {
 
 // --- Inicialización y eventos ---
 document.addEventListener('DOMContentLoaded', async () => {
+  // Mostrar modal de edición de letra al hacer clic en el ícono de editar
+  document.querySelectorAll('.edit-icon').forEach(icon => {
+    icon.addEventListener('click', e => {
+      if (!window.modoEdicionActivo) return;
+      e.stopPropagation();
+      const boton = icon.closest('.battery__tom');
+      if (!boton) return;
+      tomEditando = boton;
+      if (modal) {
+        modal.style.display = 'flex';
+        input.value = '';
+        input.focus();
+      }
+    });
+  });
+
+  // Mostrar modal de edición de sampler al hacer clic en el ícono de editar (cuando está activo modo samplers)
+  document.querySelectorAll('.edit-icon').forEach(icon => {
+    icon.addEventListener('click', async e => {
+      if (!window.modoEdicionSamplers) return;
+      e.stopPropagation();
+      const boton = icon.closest('.battery__tom');
+      if (!boton) return;
+      tomSamplerEditando = boton;
+      if (modalSampler) {
+        // Cargar la lista de samplers disponibles
+        if (typeof cargarSamplersDisponibles === 'function') {
+          await cargarSamplersDisponibles();
+        }
+        if (listaSamplers) {
+          listaSamplers.innerHTML = '';
+          samplersDisponibles.forEach(sampler => {
+            const li = document.createElement('li');
+            // Mostrar solo el nombre del archivo
+            const nombreArchivo = sampler.split('/').pop();
+            li.textContent = nombreArchivo;
+            li.className = 'sampler-item';
+            li.tabIndex = 0;
+            li.addEventListener('click', async () => {
+              document.querySelectorAll('.sampler-item').forEach(el => el.classList.remove('selected'));
+              li.classList.add('selected');
+              // Asegurarse de que samplerSeleccionado NO tenga prefijo 'sounds/'
+              samplerSeleccionado = nombreArchivo;
+              // Previsualizar sonido, deteniendo el anterior si existe
+              if (window._previewSource && typeof window._previewSource.stop === 'function') {
+                try { window._previewSource.stop(); } catch {}
+              }
+              try {
+                // Usar siempre la función de normalización para evitar rutas duplicadas
+                const ruta = normalizarRutaAudio(nombreArchivo);
+                if (audioCtx.state === 'suspended') {
+                  await audioCtx.resume();
+                }
+                const buffer = await cargarBufferAudio(ruta);
+                const source = audioCtx.createBufferSource();
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.value = currentVolume;
+                source.buffer = buffer;
+                source.connect(gainNode).connect(audioCtx.destination);
+                source.start();
+                window._previewSource = source;
+              } catch (e) { /* ignorar error de carga */ }
+            });
+            li.addEventListener('keydown', e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                li.click();
+              }
+            });
+            // Selecciona el actual
+            if (tomAudioMap[boton.id] && tomAudioMap[boton.id].toLowerCase().includes(nombreArchivo.toLowerCase())) {
+              li.classList.add('selected');
+              samplerSeleccionado = nombreArchivo;
+            }
+            listaSamplers.appendChild(li);
+          });
+        }
+        modalSampler.style.display = 'flex';
+      }
+    });
+  });
+  // Modal de confirmación para restablecer ajustes
+  const btnReset = document.getElementById('btnResetAjustes');
+  const modalReset = document.getElementById('modalConfirmarReset');
+  const confirmarResetBtn = document.getElementById('confirmarResetBtn');
+  const cancelarResetBtn = document.getElementById('cancelarResetBtn');
+  if (btnReset && modalReset && confirmarResetBtn && cancelarResetBtn) {
+    btnReset.addEventListener('click', () => {
+      modalReset.style.display = 'flex';
+      confirmarResetBtn.focus();
+    });
+    confirmarResetBtn.addEventListener('click', () => {
+      restablecerAjustes();
+      modalReset.style.display = 'none';
+    });
+    cancelarResetBtn.addEventListener('click', () => {
+      modalReset.style.display = 'none';
+    });
+    modalReset.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        modalReset.style.display = 'none';
+      }
+    });
+  }
   // No reanudar el contexto de audio automáticamente, solo tras interacción del usuario
   // Cargar barra de navegación y resaltar enlace actual
   fetch('nav.html')
@@ -228,55 +385,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       tomEditando = null;
     }
   });
-
-  // Íconos de edición
-  editIcons.forEach(icon => {
-    icon.addEventListener('click', async e => {
-      e.stopPropagation();
-      const botonPad = icon.closest('button');
-      if (window.modoEdicionActivo) {
-        tomEditando = botonPad;
-        modal.style.display = 'flex';
-        input.value = '';
-        input.focus();
-      } else if (window.modoEdicionSamplers) {
-        tomSamplerEditando = botonPad;
-        samplerSeleccionado = null;
-        await cargarSamplersDisponibles();
-        listaSamplers.innerHTML = '';
-        samplersDisponibles.forEach(sampler => {
-          const fileName = sampler.split('/').pop();
-          const li = document.createElement('li');
-          li.textContent = fileName;
-          li.tabIndex = 0;
-          li.className = 'sampler-item';
-          li.addEventListener('click', async () => {
-            try {
-              if (audioCtx.state === 'suspended') await audioCtx.resume();
-              const buffer = await cargarBufferAudio(normalizarRutaAudio(fileName));
-              const source = audioCtx.createBufferSource();
-              const gainNode = audioCtx.createGain();
-              source.buffer = buffer;
-              gainNode.gain.value = currentVolume;
-              source.connect(gainNode).connect(audioCtx.destination);
-              source.start();
-            } catch {}
-            listaSamplers.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
-            li.classList.add('selected');
-            samplerSeleccionado = fileName;
-          });
-          li.addEventListener('keydown', e => { if (e.key === 'Enter') li.click(); });
-          listaSamplers.appendChild(li);
-        });
-        modalSampler.style.display = 'flex';
-      }
-    });
-  });
-
   // Guardar selección de sampler
   guardarSamplerBtn.addEventListener('click', async () => {
     if (!samplerSeleccionado || !tomSamplerEditando) return;
     const tomId = tomSamplerEditando.id;
+    // samplerSeleccionado ya es solo el nombre del archivo
     const ruta = normalizarRutaAudio(samplerSeleccionado);
     tomAudioMap[tomId] = ruta;
     tomBuffers[tomId] = await cargarBufferAudio(ruta);
@@ -349,14 +462,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-// Reanudar AudioContext y recargar buffer tras volver al navegador
-window.addEventListener('focus', async () => {
-  if (audioCtx.state === 'suspended') await audioCtx.resume();
-  // Recargar buffers para evitar bug de volumen bajo
-  await precargarTodosLosToms();
-});
+  // Reanudar AudioContext y recargar buffer tras volver al navegador
+  window.addEventListener('focus', async () => {
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+    // Recargar buffers para evitar bug de volumen bajo
+    await precargarTodosLosToms();
+  });
 
-document.addEventListener('click', () => { if (audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
+  document.addEventListener('click', () => { if (audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
 
   // Footer: actualiza solo el año en el span correspondiente
   const anioFooter = document.getElementById('anioFooter');

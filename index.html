@@ -64,6 +64,18 @@
     <div class="edit-buttons-container">
       <button id="editarLetrasBtn" class="editar-letras-btn">Editar letras</button>
       <button id="editarSamplersBtn" class="editar-letras-btn">Editar samplers</button>
+      <button id="btnResetAjustes" class="editar-letras-btn" title="Restablecer sonidos y teclas por defecto">Restablecer</button>
+    </div>
+    <!-- Modal de confirmación para restablecer ajustes (fuera del contenedor de botones) -->
+    <div id="modalConfirmarReset" class="modal-editar-tecla" style="display:none;">
+      <div class="modal-content">
+        <p style="margin-bottom:1em;">¿Estás seguro que quieres restablecer los ajustes por defecto?</p>
+        <div class="modal-actions">
+          <button id="confirmarResetBtn">Sí</button>
+          <button id="cancelarResetBtn">No</button>
+        </div>
+      </div>
+    </div>
     </div>
     <div class="battery">
       <button class="battery__tom battery__tom--small" id="tom1">
