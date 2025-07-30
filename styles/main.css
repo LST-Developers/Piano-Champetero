@@ -33,8 +33,8 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* Botón de acción peligrosa (restablecer) usando la paleta del proyecto */
-.btn-peligro, .btn-reset {
+/* Botón de acción peligrosa (restablecer) y cancelar usando la paleta del proyecto */
+.btn-peligro, .btn-reset, .btn-cancelar {
   background: var(--color-secundario) !important;
   color: #fff !important;
   border: none;
@@ -43,7 +43,7 @@ body {
   box-shadow: var(--sombra-btn, 0 2px 8px rgba(0,0,0,0.10));
   transition: background 0.2s, box-shadow 0.2s, color 0.2s;
 }
-.btn-peligro:hover, .btn-reset:hover {
+.btn-peligro:hover, .btn-reset:hover, .btn-cancelar:hover {
   background: var(--color-principal) !important;
   color: #fff !important;
   box-shadow: var(--sombra-btn-hover, 0 4px 16px rgba(0,0,0,0.14));
