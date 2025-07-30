@@ -1,44 +1,50 @@
 // Utilidades
-const normalizarRutaAudio = ruta => {
-  if (!ruta) return '';
-  ruta = ruta.replace(/\\+/g, '/').replace(/\/+/g, '/').replace(/(sounds\/)+/i, 'sounds/');
-  return ruta.startsWith('sounds/') ? ruta : 'sounds/' + ruta;
-};
 
 // Estado global
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const tomAudioMap = {
-  tom1: 'sounds/D (2).wav',
-  tom2: 'sounds/F4.wav',
-  tom3: 'sounds/Pitico.wav',
-  tom4: 'sounds/SKTAC.WAV',
-  tom5: 'sounds/Y.wav',
-  tom6: 'sounds/F2.wma',
-  tom7: 'sounds/perro bajo.WAV',
-  tom8: 'sounds/SK2.WAV',
-  tom9: 'sounds/Smar 1.wav'
+const TOM_AUDIO_DEFAULTS = {
+  tom1: 'D (2).wav',
+  tom2: 'F4.wav',
+  tom3: 'Pitico.wav',
+  tom4: 'SKTAC.WAV',
+  tom5: 'Y.wav',
+  tom6: 'F2.wma',
+  tom7: 'perro bajo.WAV',
+  tom8: 'SK2.WAV',
+  tom9: 'Smar 1.wav'
 };
-const tomAudioMapDefaults = {
-  tom1: 'sounds/D (2).wav',
-  tom2: 'sounds/F4.wav',
-  tom3: 'sounds/Pitico.wav',
-  tom4: 'sounds/SKTAC.WAV',
-  tom5: 'sounds/Y.wav',
-  tom6: 'sounds/F2.wma',
-  tom7: 'sounds/perro bajo.WAV',
-  tom8: 'sounds/SK2.WAV',
-  tom9: 'sounds/Smar 1.wav'
-};
+// Inicializar tomAudioMap con los datos de localStorage si existen, si no con los defaults
+let tomAudioMap;
+(() => {
+  tomAudioMap = { ...TOM_AUDIO_DEFAULTS };
+  const dataSamplers = localStorage.getItem('pianoChampeteroSamplers');
+  console.log('[PianoChampetero] Cargando samplers desde localStorage:', dataSamplers);
+  if (dataSamplers) {
+    try {
+      const parsed = JSON.parse(dataSamplers);
+      Object.keys(tomAudioMap).forEach(k => {
+        // Si hay personalizado, úsalo; si no, deja el default
+        if (parsed[k]) {
+          tomAudioMap[k] = parsed[k];
+        }
+      });
+      console.log('[PianoChampetero] Samplers aplicados al iniciar:', tomAudioMap);
+    } catch (e) {
+      console.error('[PianoChampetero] Error al parsear samplers:', e);
+    }
+  }
+})();
 const keyToTomIdDefaults = { q: 'tom1', w: 'tom2', e: 'tom3', a: 'tom4', s: 'tom5', d: 'tom6', z: 'tom7', x: 'tom8', c: 'tom9' };
 // Restablecer ajustes
 function restablecerAjustes() {
+  // Borrar configuraciones del usuario en localStorage
+  localStorage.removeItem('pianoChampeteroSamplers');
+  localStorage.removeItem('pianoChampeteroKeyMap');
   // Restaurar sonidos por defecto
-  Object.keys(tomAudioMap).forEach(k => tomAudioMap[k] = tomAudioMapDefaults[k]);
+  Object.keys(tomAudioMap).forEach(k => tomAudioMap[k] = TOM_AUDIO_DEFAULTS[k]);
   // Restaurar mapeo de teclas por defecto
   Object.keys(keyToTomId).forEach(k => delete keyToTomId[k]);
   Object.entries(keyToTomIdDefaults).forEach(([k, v]) => keyToTomId[k] = v);
-  guardarSamplersLocal();
-  guardarMapeoLocal();
   precargarTodosLosToms().then(() => {
     // Actualizar letras en los botones
     Object.entries(keyToTomId).forEach(([key, tomId]) => {
@@ -72,23 +78,15 @@ const guardarSamplersLocal = () => {
   // Guardar solo el nombre del archivo (sin carpeta)
   const soloNombre = {};
   Object.keys(tomAudioMap).forEach(k => {
-    const ruta = tomAudioMap[k];
-    soloNombre[k] = ruta ? ruta.split('/').pop() : '';
+    const nombre = tomAudioMap[k] ? tomAudioMap[k].split('/').pop() : '';
+    soloNombre[k] = nombre;
   });
   localStorage.setItem('pianoChampeteroSamplers', JSON.stringify(soloNombre));
+  console.log('[PianoChampetero] Samplers guardados en localStorage:', soloNombre);
 };
-const cargarSamplersLocal = () => {
-  const data = localStorage.getItem('pianoChampeteroSamplers');
-  if (data) {
-    const parsed = JSON.parse(data);
-    Object.keys(tomAudioMap).forEach(k => {
-      if (parsed[k]) {
-        // Siempre reconstruir la ruta usando el nombre del archivo
-        tomAudioMap[k] = normalizarRutaAudio(parsed[k]);
-      }
-    });
-  }
-};
+
+// Guardar samplers automáticamente al salir o recargar la página
+window.addEventListener('beforeunload', guardarSamplersLocal);
 
 // Carga dinámica de samplers
 async function cargarSamplersDisponibles() {
@@ -98,26 +96,34 @@ async function cargarSamplersDisponibles() {
     samplersDisponibles = Array.from(text.matchAll(/href="([^"]+\.(?:wav|mp3|WAV|MP3))"/gi)).map(m => m[1].startsWith('sounds/') ? m[1].slice(7) : m[1]);
   } catch {
     samplersDisponibles = [
-      'pitico medio.wav','perro bajo.WAV','PON1.wav','SKTAC.WAV','Y.wav','F4.wav','Pitico.wav','SK2.WAV','WARA2.wav','Golpe SK5.wav','Lazer.wav','Leon.wav','SK1.WAV','SKTUN.WAV'
+      'pitico medio.wav', 'perro bajo.WAV', 'PON1.wav', 'SKTAC.WAV', 'Y.wav', 'F4.wav', 'Pitico.wav', 'SK2.WAV', 'WARA2.wav', 'Golpe SK5.wav', 'Lazer.wav', 'Leon.wav', 'SK1.WAV', 'SKTUN.WAV'
     ];
   }
+  // Solo volver al default si el archivo realmente no existe
   const archivosDisponibles = new Set(samplersDisponibles.map(f => f.toLowerCase()));
   Object.keys(tomAudioMap).forEach(tomId => {
-    const ruta = tomAudioMap[tomId];
-    if (ruta && !archivosDisponibles.has(ruta.split('/').pop().toLowerCase())) tomAudioMap[tomId] = null;
+    const nombre = tomAudioMap[tomId] ? tomAudioMap[tomId].split('/').pop() : '';
+    // Si el nombre está vacío o es null, poner default
+    if (!nombre) {
+      tomAudioMap[tomId] = TOM_AUDIO_DEFAULTS[tomId];
+      return;
+    }
+    // Si el nombre no existe en sounds, volver al default
+    if (!archivosDisponibles.has(nombre.toLowerCase())) {
+      tomAudioMap[tomId] = TOM_AUDIO_DEFAULTS[tomId];
+    }
+    // Si el nombre existe, NO tocar el valor personalizado
   });
-  Object.keys(tomAudioMap).forEach((tomId, idx) => {
-    if (!tomAudioMap[tomId] && samplersDisponibles[idx]) tomAudioMap[tomId] = normalizarRutaAudio(samplersDisponibles[idx]);
-  });
+  // Así nunca se pierde el sampler personalizado si existe el archivo
 }
 
 // Precarga de buffers
 async function precargarTodosLosToms() {
   await cargarSamplersDisponibles();
-  await Promise.all(Object.entries(tomAudioMap).map(async ([tomId, audioUrl]) => {
-    if (audioUrl) {
+  await Promise.all(Object.entries(tomAudioMap).map(async ([tomId, nombreArchivo]) => {
+    if (nombreArchivo) {
       try {
-        tomBuffers[tomId] = await cargarBufferAudio(normalizarRutaAudio(audioUrl));
+        tomBuffers[tomId] = await cargarBufferAudio('sounds/' + nombreArchivo);
       } catch { tomBuffers[tomId] = null; }
     } else tomBuffers[tomId] = null;
   }));
@@ -201,15 +207,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             li.addEventListener('click', async () => {
               document.querySelectorAll('.sampler-item').forEach(el => el.classList.remove('selected'));
               li.classList.add('selected');
-              // Asegurarse de que samplerSeleccionado NO tenga prefijo 'sounds/'
               samplerSeleccionado = nombreArchivo;
               // Previsualizar sonido, deteniendo el anterior si existe
               if (window._previewSource && typeof window._previewSource.stop === 'function') {
-                try { window._previewSource.stop(); } catch {}
+                try { window._previewSource.stop(); } catch { }
               }
               try {
-                // Usar siempre la función de normalización para evitar rutas duplicadas
-                const ruta = normalizarRutaAudio(nombreArchivo);
+                // Previsualizar usando la ruta correcta
+                const ruta = 'sounds/' + nombreArchivo;
                 if (audioCtx.state === 'suspended') {
                   await audioCtx.resume();
                 }
@@ -279,7 +284,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
   // Cargar configuración local
-  cargarSamplersLocal();
   cargarMapeoLocal();
   await precargarTodosLosToms();
 
@@ -389,10 +393,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   guardarSamplerBtn.addEventListener('click', async () => {
     if (!samplerSeleccionado || !tomSamplerEditando) return;
     const tomId = tomSamplerEditando.id;
-    // samplerSeleccionado ya es solo el nombre del archivo
-    const ruta = normalizarRutaAudio(samplerSeleccionado);
-    tomAudioMap[tomId] = ruta;
-    tomBuffers[tomId] = await cargarBufferAudio(ruta);
+    const nombre = samplerSeleccionado;
+    tomAudioMap[tomId] = nombre;
+    tomBuffers[tomId] = await cargarBufferAudio('sounds/' + nombre);
     guardarSamplersLocal();
     modalSampler.style.display = 'none';
     tomSamplerEditando = null;
@@ -440,6 +443,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Enter') guardarBtn.click();
   });
 
+  /// ...
+
   // Eventos de activación
   document.addEventListener('keydown', async e => {
     const modal = document.getElementById('modalEditarTecla');
@@ -450,6 +455,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await activarTom(tomId);
     }
   });
+
   Object.keys(tomAudioMap).forEach(tomId => {
     const boton = document.getElementById(tomId);
     if (boton) boton.addEventListener('click', async e => {
@@ -474,4 +480,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Footer: actualiza solo el año en el span correspondiente
   const anioFooter = document.getElementById('anioFooter');
   if (anioFooter) anioFooter.textContent = new Date().getFullYear();
+
+  // Botón de guardar sonidos
+  const guardarSonidosBtn = document.getElementById('guardarSamplerBtn');
+  guardarSonidosBtn.addEventListener('click', () => {
+    guardarSamplersLocal();
+  });
 });
