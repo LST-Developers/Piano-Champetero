@@ -1,61 +1,90 @@
+// Referencias globales para el modal de samplers
+const modalSampler = document.getElementById('modalEditarSampler');
+const listaSamplers = document.getElementById('listaSamplers');
+const guardarSamplerBtn = document.getElementById('guardarSamplerBtn');
+const cancelarSamplerBtn = document.getElementById('cancelarSamplerBtn');
+let tomSamplerEditando = null;
+let samplerSeleccionado = null;
 // Cargar barra de navegación desde nav.html en todas las páginas
-window.addEventListener('DOMContentLoaded', function () {
-  const navContainer = document.getElementById('nav-container');
-  if (navContainer) {
-    fetch('nav.html')
-      .then(response => response.text())
-      .then(data => {
-        navContainer.innerHTML = data;
-        // Activar el enlace actual
-        const path = window.location.pathname;
-        if (path.endsWith('index.html') || path === '/' || path === '/Piano-Champetero/' ) {
-          document.getElementById('nav-inicio')?.classList.add('active');
-        } else if (path.endsWith('sobre-nosotros.html')) {
-          document.getElementById('nav-sobre')?.classList.add('active');
+// Cargar barra de navegación desde nav.html en el contenedor #nav-container
+document.addEventListener('DOMContentLoaded', () => {
+  fetch('nav.html')
+    .then(res => res.text())
+    .then(html => {
+      const navContainer = document.getElementById('nav-container');
+      if (navContainer) navContainer.innerHTML = html;
+
+      // Resaltar el enlace de la página actual
+      const path = window.location.pathname.split('/').pop() || 'index.html';
+      const navLinks = navContainer.querySelectorAll('a[href]');
+      navLinks.forEach(link => {
+        if (link.getAttribute('href') === path) {
+          link.classList.add('active');
         }
       });
-  }
+    });
 });
-// --- Estado global de edición ---
-
-// --- Edición de letras de los toms ---
-document.addEventListener('DOMContentLoaded', () => {
-  const modalSampler = document.getElementById('modalEditarSampler');
-  const listaSamplers = document.getElementById('listaSamplers');
-  const guardarSamplerBtn = document.getElementById('guardarSamplerBtn');
-  const cancelarSamplerBtn = document.getElementById('cancelarSamplerBtn');
-  let tomSamplerEditando = null;
-  let samplerSeleccionado = null;
-  // Eliminar variables locales, usar solo window.modoEdicionActivo y window.modoEdicionSamplers
-
-  // Lista de samplers disponibles (se genera dinámicamente)
-  let samplersDisponibles = [];
-  async function cargarSamplersDisponibles() {
-    try {
-      const res = await fetch('sounds/');
-      const text = await res.text();
-      samplersDisponibles = Array.from(text.matchAll(/href="([^"]+\.(?:wav|mp3|WAV|MP3))"/gi)).map(m => decodeURIComponent(m[1]));
-    } catch (e) {
-      console.error('Error cargando samplers:', e);
-      samplersDisponibles = [
-        'pitico medio.wav',
-        'perro bajo.WAV',
-        'PON1.wav',
-        'SKTAC.WAV',
-        'Y.wav',
-        'F4.wav',
-        'Pitico.wav',
-        'SK2.WAV',
-        'WARA2.wav',
-        'Golpe SK5.wav',
-        'Lazer.wav',
-        'Leon.wav',
-        'PISTA PERREO.MP3',
-        'SK1.WAV',
-        'SKTUN.WAV'
-      ];
-    }
+// Lista de samplers disponibles (se genera dinámicamente)
+// Utilidad para normalizar rutas de audio y evitar duplicados de 'sounds/'
+function normalizarRutaAudio(ruta) {
+  if (!ruta) return '';
+  ruta = ruta.replace(/\\+/g, '/'); // barras invertidas a /
+  ruta = ruta.replace(/\/+/g, '/');  // dobles slashes normales a uno solo
+  ruta = ruta.replace(/(sounds\/)+/i, 'sounds/');
+  if (!ruta.startsWith('sounds/')) ruta = 'sounds/' + ruta;
+  return ruta;
+}
+let samplersDisponibles = [];
+async function cargarSamplersDisponibles() {
+  try {
+    const res = await fetch('sounds/');
+    const text = await res.text();
+    samplersDisponibles = Array.from(text.matchAll(/href="([^"]+\.(?:wav|mp3|WAV|MP3))"/gi))
+      .map(m => {
+        let name = decodeURIComponent(m[1]);
+        // Si el nombre ya tiene el prefijo 'sounds/', quítalo
+        if (name.startsWith('sounds/')) name = name.slice(7);
+        return name;
+      });
+  } catch (e) {
+    console.error('Error cargando samplers:', e);
+    samplersDisponibles = [
+      'pitico medio.wav',
+      'perro bajo.WAV',
+      'PON1.wav',
+      'SKTAC.WAV',
+      'Y.wav',
+      'F4.wav',
+      'Pitico.wav',
+      'SK2.WAV',
+      'WARA2.wav',
+      'Golpe SK5.wav',
+      'Lazer.wav',
+      'Leon.wav',
+      'SK1.WAV',
+      'SKTUN.WAV'
+    ];
   }
+  // Limpiar mapeo de toms para que solo apunten a archivos existentes
+  const archivosDisponibles = new Set(samplersDisponibles.map(f => f.toLowerCase()));
+  Object.keys(tomAudioMap).forEach(tomId => {
+    const ruta = tomAudioMap[tomId];
+    if (ruta) {
+      const nombre = ruta.split('/').pop().toLowerCase();
+      if (!archivosDisponibles.has(nombre)) {
+        // Si el archivo ya no existe, asignar null
+        tomAudioMap[tomId] = null;
+      }
+    }
+  });
+  // Si hay toms sin sampler asignado, asignar el primero disponible (si existe)
+  Object.keys(tomAudioMap).forEach((tomId, idx) => {
+    if (!tomAudioMap[tomId] && samplersDisponibles[idx]) {
+      tomAudioMap[tomId] = normalizarRutaAudio(samplersDisponibles[idx]);
+    }
+  });
+}
+
 
   // Referencias a botones de edición
   const editarBtn = document.getElementById('editarLetrasBtn');
@@ -164,7 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
           li.addEventListener('click', async () => {
             // Previsualizar sonido
             try {
-              const buffer = await cargarBufferAudio('sounds/' + fileName);
+              const ruta = normalizarRutaAudio(fileName);
+              const buffer = await cargarBufferAudio(ruta);
               const source = audioCtx.createBufferSource();
               const gainNode = audioCtx.createGain();
               source.buffer = buffer;
@@ -192,8 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
   guardarSamplerBtn.addEventListener('click', async () => {
     if (!samplerSeleccionado || !tomSamplerEditando) return;
     const tomId = tomSamplerEditando.id;
-    tomAudioMap[tomId] = 'sounds/' + samplerSeleccionado;
-    tomBuffers[tomId] = await cargarBufferAudio('sounds/' + samplerSeleccionado);
+    const ruta = normalizarRutaAudio(samplerSeleccionado);
+    tomAudioMap[tomId] = ruta;
+    tomBuffers[tomId] = await cargarBufferAudio(ruta);
     guardarSamplersLocal(); // Guardar configuración de samplers
     modalSampler.style.display = 'none';
     tomSamplerEditando = null;
@@ -224,8 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Guardar y cargar configuración de samplers ---
   // (Definidas globalmente al final del archivo)
 
-  // Cargar mapeo guardado al iniciar
-  cargarMapeoLocal();
+
 
   // Guardar nueva letra y persistir
   guardarBtn.addEventListener('click', () => {
@@ -268,7 +298,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') cancelarBtn.click();
     if (e.key === 'Enter') guardarBtn.click();
   });
-});
 // --- Batería Champetera: Audio instantáneo, código claro y documentado ---
 
 // --- Guardar y cargar configuración de samplers (definición global) ---
@@ -280,7 +309,9 @@ function cargarSamplersLocal() {
   if (data) {
     const obj = JSON.parse(data);
     Object.keys(tomAudioMap).forEach(k => {
-      if (obj[k]) tomAudioMap[k] = obj[k];
+      if (obj[k]) {
+        tomAudioMap[k] = normalizarRutaAudio(obj[k]);
+      }
     });
   }
 }
@@ -329,8 +360,19 @@ async function cargarBufferAudio(url) {
  * Precarga todos los sonidos de los toms en memoria
  */
 async function precargarTodosLosToms() {
+  await cargarSamplersDisponibles(); // Asegura que el mapeo esté limpio y actualizado
   await Promise.all(Object.entries(tomAudioMap).map(async ([tomId, audioUrl]) => {
-    tomBuffers[tomId] = await cargarBufferAudio(audioUrl);
+    if (audioUrl) {
+      try {
+        const ruta = normalizarRutaAudio(audioUrl);
+        tomBuffers[tomId] = await cargarBufferAudio(ruta);
+      } catch (e) {
+        tomBuffers[tomId] = null;
+        console.warn('No se pudo cargar el sampler para', tomId, audioUrl);
+      }
+    } else {
+      tomBuffers[tomId] = null;
+    }
   }));
 }
 
