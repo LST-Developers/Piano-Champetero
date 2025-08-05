@@ -94,6 +94,158 @@ header {
   font-size: 1.25em; line-height: 1.7; margin: 0; color: #8B4513; font-weight: 400;
 }
 
+/* ===================== CONTACTO ===================== */
+.contacto-container {
+  max-width: 900px; margin: 2.5em auto 2em auto; background: rgba(255,255,255,0.9);
+  border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); padding: 2.2em 2em 2em 2em;
+  color: #8B4513; font-family: 'Roboto', Arial, sans-serif;
+}
+
+.contacto-container h2 {
+  font-family: 'Seaweed Script', cursive; font-size: 2.7em; color: var(--color-principal);
+  margin-bottom: 0.5em; margin-top: 0; letter-spacing: 1px; text-align: center;
+}
+
+.intro-contacto {
+  font-size: 1.2em; line-height: 1.6; margin-bottom: 2em; text-align: center;
+  color: #8B4513; font-weight: 400;
+}
+
+.contacto-opciones {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5em; margin: 2em 0;
+}
+
+.contacto-opcion {
+  background: rgba(255,255,255,0.8); border-radius: 12px; padding: 1.5em 1em; text-align: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.contacto-opcion:hover {
+  transform: translateY(-3px); box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.contacto-icono {
+  font-size: 2.5em; color: var(--color-principal); margin-bottom: 0.8em;
+}
+
+.contacto-opcion h3 {
+  font-size: 1.3em; color: var(--color-marron); margin: 0.5em 0;
+}
+
+.contacto-opcion p {
+  font-size: 0.95em; color: #666; margin-bottom: 1.2em; line-height: 1.4;
+}
+
+.btn-contacto {
+  display: inline-flex; align-items: center; gap: 0.5em; background: var(--color-principal);
+  color: #fff; text-decoration: none; padding: 0.6em 1.2em; border-radius: var(--borde-radius);
+  font-weight: bold; transition: background 0.2s, box-shadow 0.2s; box-shadow: var(--sombra-btn);
+}
+
+.btn-contacto:hover {
+  background: var(--color-secundario); box-shadow: var(--sombra-btn-hover);
+}
+
+/* Formulario de contacto */
+.formulario-contacto {
+  background: rgba(255,255,255,0.6); border-radius: 12px; padding: 2em; margin: 2em 0;
+}
+
+.formulario-contacto h3 {
+  font-family: 'Seaweed Script', cursive; font-size: 2em; color: var(--color-principal);
+  margin-bottom: 1em; text-align: center;
+}
+
+.contact-form {
+  max-width: 600px; margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 1.5em;
+}
+
+.form-group label {
+  display: block; margin-bottom: 0.5em; font-weight: bold; color: var(--color-marron);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%; padding: 0.8em; border: 2px solid #ddd; border-radius: var(--borde-radius);
+  font-family: inherit; font-size: 1em; transition: border-color 0.2s; box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none; border-color: var(--color-principal);
+}
+
+.form-group textarea {
+  resize: vertical; min-height: 120px;
+}
+
+.btn-enviar {
+  display: flex; align-items: center; justify-content: center; gap: 0.5em;
+  background: var(--color-principal); color: #fff; border: none; border-radius: var(--borde-radius);
+  font-family: inherit; font-weight: bold; font-size: 1.1em; cursor: pointer;
+  padding: 0.8em 2em; margin: 1.5em auto 0 auto; transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: var(--sombra-btn);
+}
+
+.btn-enviar:hover {
+  background: var(--color-secundario); box-shadow: var(--sombra-btn-hover);
+}
+
+/* Información adicional */
+.info-adicional {
+  background: rgba(255,255,255,0.6); border-radius: 12px; padding: 2em; margin: 2em 0;
+}
+
+.info-adicional h3 {
+  font-family: 'Seaweed Script', cursive; font-size: 2em; color: var(--color-principal);
+  margin-bottom: 1em; text-align: center;
+}
+
+.info-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5em;
+}
+
+.info-item {
+  text-align: center; padding: 1em;
+}
+
+.info-item i {
+  font-size: 2em; color: var(--color-principal); margin-bottom: 0.5em;
+}
+
+.info-item h4 {
+  color: var(--color-marron); margin: 0.5em 0; font-size: 1.1em;
+}
+
+.info-item p {
+  color: #666; font-size: 0.95em; margin: 0; line-height: 1.4;
+}
+
+/* Responsive para contacto */
+@media (max-width: 768px) {
+  .contacto-container {
+    margin: 1em; padding: 1.5em;
+  }
+  
+  .contacto-opciones {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .formulario-contacto {
+    padding: 1.5em;
+  }
+}
+
 /* ===================== MODALES ===================== */
 .modal-editar-sampler, .modal-editar-tecla {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: none;
