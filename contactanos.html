@@ -71,62 +71,12 @@
       <h2>¡Hablemos!</h2>
       <p class="intro-contacto">
         ¿Tienes alguna pregunta, sugerencia o quieres colaborar con nosotros? 
-        Nos encanta escuchar de nuestra comunidad champetera. ¡Contáctanos!
+        Completa el formulario y te responderemos lo antes posible. ¡Nos encanta escuchar de nuestra comunidad champetera!
       </p>
 
-      <div class="contacto-opciones">
-        <div class="contacto-opcion">
-          <div class="contacto-icono">
-            <i class="fab fa-whatsapp"></i>
-          </div>
-          <h3>WhatsApp</h3>
-          <p>¿Necesitas ayuda rápida? Escríbenos por WhatsApp</p>
-          <a href="https://wa.me/573001234567?text=Hola,%20tengo%20una%20pregunta%20sobre%20la%20Batería%20Champetera%20Virtual" 
-             target="_blank" class="btn-contacto">
-            <i class="fab fa-whatsapp"></i> Escribir
-          </a>
-        </div>
-
-        <div class="contacto-opcion">
-          <div class="contacto-icono">
-            <i class="fas fa-envelope"></i>
-          </div>
-          <h3>Email</h3>
-          <p>Para consultas más detalladas o propuestas</p>
-          <a href="mailto:contacto@bateriachampetera.com?subject=Consulta%20Batería%20Champetera&body=Hola,%20mi%20consulta%20es:%20" 
-             class="btn-contacto">
-            <i class="fas fa-envelope"></i> Enviar Email
-          </a>
-        </div>
-
-        <div class="contacto-opcion">
-          <div class="contacto-icono">
-            <i class="fab fa-instagram"></i>
-          </div>
-          <h3>Instagram</h3>
-          <p>Síguenos para contenido y actualizaciones</p>
-          <a href="https://www.instagram.com/bateriachampetera" 
-             target="_blank" class="btn-contacto">
-            <i class="fab fa-instagram"></i> Seguir
-          </a>
-        </div>
-
-        <div class="contacto-opcion">
-          <div class="contacto-icono">
-            <i class="fab fa-youtube"></i>
-          </div>
-          <h3>YouTube</h3>
-          <p>Tutoriales y contenido champetero</p>
-          <a href="https://www.youtube.com/@bateriachampetera" 
-             target="_blank" class="btn-contacto">
-            <i class="fab fa-youtube"></i> Suscribirse
-          </a>
-        </div>
-      </div>
-
       <div class="formulario-contacto">
-        <h3>O déjanos un mensaje</h3>
-        <form id="contactForm" class="contact-form">
+        <h3>Envíanos un mensaje</h3>
+        <form id="contactForm" class="contact-form" action="https://formspree.io/f/xqalyldq" method="POST">
           <div class="form-group">
             <label for="nombre">Nombre *</label>
             <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre completo">
@@ -141,11 +91,11 @@
             <label for="asunto">Asunto *</label>
             <select id="asunto" name="asunto" required>
               <option value="">Selecciona un tema</option>
-              <option value="soporte">Soporte técnico</option>
-              <option value="sugerencia">Sugerencia/Mejora</option>
-              <option value="colaboracion">Propuesta de colaboración</option>
-              <option value="bug">Reportar un error</option>
-              <option value="otro">Otro</option>
+              <option value="Soporte técnico">Soporte técnico</option>
+              <option value="Sugerencia/Mejora">Sugerencia/Mejora</option>
+              <option value="Propuesta de colaboración">Propuesta de colaboración</option>
+              <option value="Reportar un error">Reportar un error</option>
+              <option value="Otro">Otro</option>
             </select>
           </div>
 
@@ -154,10 +104,23 @@
             <textarea id="mensaje" name="mensaje" required placeholder="Cuéntanos tu consulta, sugerencia o propuesta..." rows="5"></textarea>
           </div>
 
+          <!-- Campo oculto para identificar el sitio -->
+          <input type="hidden" name="_subject" value="Nuevo mensaje desde Batería Champetera Virtual">
+          <input type="hidden" name="_next" value="https://bateriachampetera.com/contactanos.html?enviado=true">
+
           <button type="submit" class="btn-enviar">
             <i class="fas fa-paper-plane"></i> Enviar Mensaje
           </button>
         </form>
+
+        <!-- Mensaje de confirmación -->
+        <div id="mensajeConfirmacion" class="mensaje-confirmacion" style="display: none;">
+          <div class="confirmacion-content">
+            <i class="fas fa-check-circle"></i>
+            <h4>¡Mensaje enviado correctamente!</h4>
+            <p>Gracias por contactarnos. Te responderemos lo antes posible.</p>
+          </div>
+        </div>
       </div>
 
       <div class="info-adicional">
@@ -169,14 +132,14 @@
             <p>Normalmente respondemos en 24-48 horas</p>
           </div>
           <div class="info-item">
-            <i class="fas fa-globe"></i>
-            <h4>Disponibilidad</h4>
-            <p>Estamos disponibles de lunes a viernes</p>
+            <i class="fas fa-envelope"></i>
+            <h4>Email directo</h4>
+            <p>Tu mensaje llegará directamente a nuestro correo</p>
           </div>
           <div class="info-item">
             <i class="fas fa-heart"></i>
-            <h4>Comunidad</h4>
-            <p>Únete a nuestra comunidad champetera</p>
+            <h4>Feedback</h4>
+            <p>Valoramos todas tus sugerencias y comentarios</p>
           </div>
         </div>
       </div>
@@ -188,45 +151,5 @@
   </footer>
 
   <script src="main.js"></script>
-  <script>
-    // Script específico para la página de contacto
-    document.addEventListener('DOMContentLoaded', function() {
-      const form = document.getElementById('contactForm');
-      
-      if (form) {
-        form.addEventListener('submit', function(e) {
-          e.preventDefault();
-          
-          const nombre = document.getElementById('nombre').value;
-          const email = document.getElementById('email').value;
-          const asunto = document.getElementById('asunto').value;
-          const mensaje = document.getElementById('mensaje').value;
-          
-          // Validación básica
-          if (!nombre || !email || !asunto || !mensaje) {
-            alert('Por favor, completa todos los campos obligatorios.');
-            return;
-          }
-          
-          // Crear el mensaje para WhatsApp
-          const whatsappMessage = `*Contacto desde Batería Champetera*%0A%0A` +
-            `*Nombre:* ${encodeURIComponent(nombre)}%0A` +
-            `*Email:* ${encodeURIComponent(email)}%0A` +
-            `*Asunto:* ${encodeURIComponent(asunto)}%0A` +
-            `*Mensaje:* ${encodeURIComponent(mensaje)}`;
-          
-          // Abrir WhatsApp con el mensaje
-          const whatsappUrl = `https://wa.me/573001234567?text=${whatsappMessage}`;
-          window.open(whatsappUrl, '_blank');
-          
-          // Limpiar el formulario
-          form.reset();
-          
-          // Mostrar mensaje de confirmación
-          alert('¡Gracias por contactarnos! Te hemos redirigido a WhatsApp para enviar tu mensaje.');
-        });
-      }
-    });
-  </script>
 </body>
 </html>

@@ -350,3 +350,21 @@ footer p { margin: 0; letter-spacing: 0.5px; }
 .ad-inf { display: flex; background-color: lightgray; height: 5em; justify-content: center; align-items: center; }
 
 #nav-container { margin: 1rem 0; }
+
+/* ===================== MENSAJE DE CONFIRMACIÓN ===================== */
+.mensaje-confirmacion {
+  background: rgba(76, 175, 80, 0.1); border: 2px solid #4CAF50; border-radius: var(--borde-radius);
+  padding: 2em; text-align: center; margin-top: 1em;
+}
+
+.confirmacion-content i {
+  font-size: 3em; color: #4CAF50; margin-bottom: 0.5em;
+}
+
+.confirmacion-content h4 {
+  color: #4CAF50; margin: 0.5em 0; font-size: 1.3em;
+}
+
+.confirmacion-content p {
+  color: #666; margin: 0; font-size: 1.1em;
+}

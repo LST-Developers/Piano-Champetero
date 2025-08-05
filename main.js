@@ -488,4 +488,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   saveSamplersBtn.addEventListener('click', () => {
     saveSamplers();
   });
+
+  // === FUNCIONALIDAD PÁGINA DE CONTACTO ===
+  // Verificar si hay parámetro de confirmación en la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('enviado') === 'true') {
+    const mensajeConfirmacion = document.getElementById('mensajeConfirmacion');
+    const contactForm = document.getElementById('contactForm');
+    
+    if (mensajeConfirmacion && contactForm) {
+      mensajeConfirmacion.style.display = 'block';
+      contactForm.style.display = 'none';
+      
+      // Limpiar la URL después de 5 segundos
+      setTimeout(() => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        mensajeConfirmacion.style.display = 'none';
+        contactForm.style.display = 'block';
+      }, 5000);
+    }
+  }
+
+  // Manejar envío del formulario con animación
+  const contactForm = document.getElementById('contactForm');
+  if (contactForm) {
+    contactForm.addEventListener('submit', function(e) {
+      const submitBtn = contactForm.querySelector('.btn-enviar');
+      if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        submitBtn.disabled = true;
+      }
+    });
+  }
 });
