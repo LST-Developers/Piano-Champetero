@@ -165,113 +165,11 @@ async function activateTomSampler(tomId) {
 
 // --- Inicialización y eventos ---
 document.addEventListener('DOMContentLoaded', async () => {
-  // Cargar mapeo de teclas personalizado si existe
-  loadKeyMapping();
-  // Mostrar modal de edición de letra al hacer clic en el ícono de editar
-  document.querySelectorAll('.edit-icon').forEach(icon => {
-    icon.addEventListener('click', e => {
-      if (!window.modoEdicionActivo) return;
-      e.stopPropagation();
-      const boton = icon.closest('.battery__tom');
-      if (!boton) return;
-      tomEditando = boton;
-      if (modal) {
-        modal.style.display = 'flex';
-        input.value = '';
-        input.focus();
-      }
-    });
-  });
-
-  // Mostrar modal de edición de sampler al hacer clic en el ícono de editar (cuando está activo modo samplers)
-  document.querySelectorAll('.edit-icon').forEach(icon => {
-    icon.addEventListener('click', async e => {
-      if (!window.modoEdicionSamplers) return;
-      e.stopPropagation();
-      const boton = icon.closest('.battery__tom');
-      if (!boton) return;
-      tomSamplerEditando = boton;
-      if (modalSampler) {
-        // Cargar la lista de samplers disponibles
-        if (typeof cargarSamplersDisponibles === 'function') {
-          await cargarSamplersDisponibles();
-        }
-        if (listaSamplers) {
-          listaSamplers.innerHTML = '';
-          samplersDisponibles.forEach(sampler => {
-            const li = document.createElement('li');
-            // Mostrar solo el nombre del archivo
-            const nombreArchivo = sampler.split('/').pop();
-            li.textContent = nombreArchivo;
-            li.className = 'sampler-item';
-            li.tabIndex = 0;
-            li.addEventListener('click', async () => {
-              document.querySelectorAll('.sampler-item').forEach(el => el.classList.remove('selected'));
-              li.classList.add('selected');
-              samplerSeleccionado = nombreArchivo;
-              // Previsualizar sonido, deteniendo el anterior si existe
-              if (window._previewSource && typeof window._previewSource.stop === 'function') {
-                try { window._previewSource.stop(); } catch { }
-              }
-              try {
-              // Preview using the correct sampler path
-                const path = 'samplers/' + nombreArchivo;
-                if (audioCtx.state !== 'running') {
-                  await audioCtx.resume();
-                }
-                const buffer = await loadSamplerBuffer(path);
-                const source = audioCtx.createBufferSource();
-                const gainNode = audioCtx.createGain();
-                gainNode.gain.value = currentVolume;
-                source.buffer = buffer;
-                source.connect(gainNode).connect(audioCtx.destination);
-                source.start();
-                window._previewSource = source;
-              } catch (e) {
-                // Si falla, no hacer nada (puede ser error de carga o contexto)
-              }
-            });
-            li.addEventListener('keydown', e => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                li.click();
-              }
-            });
-            // Selecciona el actual
-            if (tomAudioMap[boton.id] && tomAudioMap[boton.id].toLowerCase().includes(nombreArchivo.toLowerCase())) {
-              li.classList.add('selected');
-              samplerSeleccionado = nombreArchivo;
-            }
-            listaSamplers.appendChild(li);
-          });
-        }
-        modalSampler.style.display = 'flex';
-      }
-    });
-  });
-  // Modal de confirmación para restablecer ajustes
-  const btnReset = document.getElementById('btnResetAjustes');
-  const modalReset = document.getElementById('modalConfirmarReset');
-  const confirmarResetBtn = document.getElementById('confirmarResetBtn');
-  const cancelarResetBtn = document.getElementById('cancelarResetBtn');
-  if (btnReset && modalReset && confirmarResetBtn && cancelarResetBtn) {
-    btnReset.addEventListener('click', () => {
-      modalReset.style.display = 'flex';
-      confirmarResetBtn.focus();
-    });
-    confirmarResetBtn.addEventListener('click', () => {
-      resetSettings();
-      modalReset.style.display = 'none';
-    });
-    cancelarResetBtn.addEventListener('click', () => {
-      modalReset.style.display = 'none';
-    });
-    modalReset.addEventListener('keydown', e => {
-      if (e.key === 'Escape') {
-        modalReset.style.display = 'none';
-      }
-    });
-  }
-  // No reanudar el contexto de audio automáticamente, solo tras interacción del usuario
+  // Determinar la página actual
+  const isMainPage = document.getElementById('tom1') !== null;
+  const isContactPage = document.getElementById('contact-form') !== null;
+  
+  // Funciones comunes para todas las páginas
   // Cargar barra de navegación y resaltar enlace actual
   fetch('nav.html')
     .then(res => res.text())
@@ -286,238 +184,430 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-  // Cargar configuración local
-  await preloadAllSamplers();
-
-  // Asignar letras a los botones
-  Object.entries(keyToTomId).forEach(([key, tomId]) => {
-    const boton = document.getElementById(tomId);
-    if (boton) {
-      const span = boton.querySelector('.battery__tom-key');
-      if (span) span.textContent = key.toUpperCase();
-    }
-  });
-
-  // Volumen
-  const sliderVolumen = document.getElementById('volumenSlider');
-  const labelPorcentaje = document.getElementById('volumenPorcentaje');
-  if (sliderVolumen) {
-    const actualizarLabel = v => labelPorcentaje && (labelPorcentaje.textContent = Math.round(v * 100) + '%');
-    if (labelPorcentaje) actualizarLabel(sliderVolumen.value);
-    sliderVolumen.addEventListener('input', e => {
-      currentVolume = +e.target.value;
-      actualizarLabel(currentVolume);
-    });
-    sliderVolumen.addEventListener('wheel', e => {
-      e.preventDefault();
-      const step = parseFloat(sliderVolumen.step) || 0.01;
-      let nuevoValor = parseFloat(sliderVolumen.value) + (e.deltaY < 0 ? step : -step);
-      nuevoValor = Math.max(parseFloat(sliderVolumen.min), Math.min(parseFloat(sliderVolumen.max), nuevoValor));
-      sliderVolumen.value = nuevoValor;
-      sliderVolumen.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-  }
-
-  // Edición
-  const editarBtn = document.getElementById('editarLetrasBtn');
-  const editarSamplersBtn = document.getElementById('editarSamplersBtn');
-  const editIcons = document.querySelectorAll('.edit-icon');
-  const modal = document.getElementById('modalEditarTecla');
-  const input = document.getElementById('nuevaTeclaInput');
-  const guardarBtn = document.getElementById('guardarTeclaBtn');
-  const cancelarBtn = document.getElementById('cancelarTeclaBtn');
-  const modalSampler = document.getElementById('modalEditarSampler');
-  const listaSamplers = document.getElementById('listaSamplers');
-  const guardarSamplerBtn = document.getElementById('guardarSamplerBtn');
-  const cancelarSamplerBtn = document.getElementById('cancelarSamplerBtn');
-
-  // Ocultar íconos de edición al inicio
-  editIcons.forEach(icon => icon.style.display = 'none');
-  const actualizarVisibilidadIconosEdicion = () => editIcons.forEach(icon => icon.style.display = (window.modoEdicionActivo || window.modoEdicionSamplers) ? 'inline-block' : 'none');
-
-  // Botones de edición
-  const actualizarTextoBotonEdicion = () => {
-    editarBtn.textContent = window.modoEdicionActivo ? 'Desactivar edición de teclas' : 'Editar letras';
-    editarBtn.classList.toggle('modo-edicion-activa', window.modoEdicionActivo);
-  };
-  const actualizarTextoBotonEdicionSamplers = () => {
-    editarSamplersBtn.textContent = window.modoEdicionSamplers ? 'Desactivar edición de samplers' : 'Editar samplers';
-    editarSamplersBtn.classList.toggle('modo-edicion-activa', window.modoEdicionSamplers);
-  };
-  actualizarTextoBotonEdicion();
-  actualizarTextoBotonEdicionSamplers();
-
-  editarBtn.addEventListener('click', () => {
-    window.modoEdicionActivo = !window.modoEdicionActivo;
-    if (window.modoEdicionActivo) {
-      window.modoEdicionSamplers = false;
-      editarSamplersBtn.classList.remove('modo-edicion-activa');
-    }
-    document.body.classList.toggle('modo-edicion', window.modoEdicionActivo);
-    actualizarVisibilidadIconosEdicion();
-    editarBtn.disabled = false;
-    editarSamplersBtn.disabled = false;
-    actualizarTextoBotonEdicion();
-    actualizarTextoBotonEdicionSamplers();
-    editarSamplersBtn.textContent = 'Editar samplers';
-    if (!window.modoEdicionActivo && modal.style.display === 'flex') {
-      modal.style.display = 'none';
-      tomEditando = null;
-    }
-    if (window.modoEdicionActivo && modalSampler.style.display === 'flex') {
-      modalSampler.style.display = 'none';
-      tomSamplerEditando = null;
-    }
-  });
-  editarSamplersBtn.addEventListener('click', () => {
-    window.modoEdicionSamplers = !window.modoEdicionSamplers;
-    if (window.modoEdicionSamplers) {
-      window.modoEdicionActivo = false;
-      editarBtn.classList.remove('modo-edicion-activa');
-    }
-    document.body.classList.toggle('modo-edicion', window.modoEdicionSamplers);
-    actualizarVisibilidadIconosEdicion();
-    editarSamplersBtn.disabled = false;
-    editarBtn.disabled = false;
-    actualizarTextoBotonEdicionSamplers();
-    actualizarTextoBotonEdicion();
-    editarBtn.textContent = 'Editar letras';
-    if (!window.modoEdicionSamplers && modalSampler.style.display === 'flex') {
-      modalSampler.style.display = 'none';
-      tomSamplerEditando = null;
-    }
-    if (window.modoEdicionSamplers && modal.style.display === 'flex') {
-      modal.style.display = 'none';
-      tomEditando = null;
-    }
-  });
-  // Guardar selección de sampler
-  guardarSamplerBtn.addEventListener('click', async () => {
-    if (!samplerSeleccionado || !tomSamplerEditando) return;
-    const tomId = tomSamplerEditando.id;
-    const nombre = samplerSeleccionado;
-    tomAudioMap[tomId] = nombre;
-    tomSamplerBuffers[tomId] = await loadSamplerBuffer('samplers/' + nombre);
-    saveSamplers();
-    modalSampler.style.display = 'none';
-    tomSamplerEditando = null;
-    samplerSeleccionado = null;
-  });
-  cancelarSamplerBtn.addEventListener('click', () => {
-    modalSampler.style.display = 'none';
-    tomSamplerEditando = null;
-    samplerSeleccionado = null;
-  });
-  modalSampler.addEventListener('keydown', e => { if (e.key === 'Escape') cancelarSamplerBtn.click(); });
-
-  // Guardar nueva letra
-  guardarBtn.addEventListener('click', () => {
-    const letra = input.value.trim().toUpperCase();
-    if (!letra || letra.length !== 1) return input.focus();
-    const spanKey = tomEditando.querySelector('.battery__tom-key');
-    spanKey.textContent = letra;
-    const tomId = tomEditando.id;
-    for (const [key, id] of Object.entries(keyToTomId)) {
-      if (id === tomId) {
-        delete keyToTomId[key];
-        keyToTomId[letra.toLowerCase()] = tomId;
-        break;
-      }
-    }
-    saveKeyMapping();
-    modal.style.display = 'none';
-    tomEditando = null;
-    editarBtn.disabled = false;
-    window.modoEdicionActivo = modoEdicionActivo;
-    document.body.classList.toggle('modo-edicion', modoEdicionActivo);
-    editIcons.forEach(icon => icon.style.display = window.modoEdicionActivo ? 'inline-block' : 'none');
-  });
-  cancelarBtn.addEventListener('click', () => {
-    modal.style.display = 'none';
-    tomEditando = null;
-    editarBtn.disabled = false;
-    window.modoEdicionActivo = modoEdicionActivo;
-    document.body.classList.toggle('modo-edicion', modoEdicionActivo);
-    editIcons.forEach(icon => icon.style.display = window.modoEdicionActivo ? 'inline-block' : 'none');
-  });
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Escape') cancelarBtn.click();
-    if (e.key === 'Enter') guardarBtn.click();
-  });
-
-  /// ...
-
-  // Eventos de activación
-  document.addEventListener('keydown', async e => {
-    const modal = document.getElementById('modalEditarTecla');
-    if ((modal && modal.style.display === 'flex') || window.modoEdicionActivo || window.modoEdicionSamplers) return;
-    const tomId = keyToTomId[e.key.toLowerCase()];
-    if (tomId) {
-      e.preventDefault();
-      await activateTomSampler(tomId);
-    }
-  });
-
-  Object.keys(tomAudioMap).forEach(tomId => {
-    const boton = document.getElementById(tomId);
-    if (boton) boton.addEventListener('click', async e => {
-      if (window.modoEdicionActivo || window.modoEdicionSamplers) {
-        e.stopPropagation();
-        e.preventDefault();
-        return;
-      }
-      await activateTomSampler(tomId);
-    });
-  });
-
-  // Reanudar AudioContext y recargar buffer tras volver al navegador
-  window.addEventListener('focus', async () => {
-    if (audioCtx.state === 'suspended') await audioCtx.resume();
-    // Recargar buffers para evitar bug de volumen bajo
-    await preloadAllSamplers();
-  });
-
-  document.addEventListener('click', () => { if (audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
-
   // Footer: actualiza solo el año en el span correspondiente
-  const anioFooter = document.getElementById('anioFooter');
-  if (anioFooter) anioFooter.textContent = new Date().getFullYear();
+  const yearFooter = document.getElementById('year-footer');
+  if (yearFooter) yearFooter.textContent = new Date().getFullYear();
 
-  // Botón de guardar sonidos
-  const saveSamplersBtn = document.getElementById('guardarSamplerBtn');
-  saveSamplersBtn.addEventListener('click', () => {
-    saveSamplers();
-  });
+  // Reanudar AudioContext con interacción del usuario
+  document.addEventListener('click', () => { 
+    if (audioCtx.state === 'suspended') audioCtx.resume(); 
+  }, { once: true });
 
-  // === FUNCIONALIDAD PÁGINA DE CONTACTO ===
-  // Verificar si hay parámetro de confirmación en la URL
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('enviado') === 'true') {
-    const mensajeConfirmacion = document.getElementById('mensajeConfirmacion');
-    const contactForm = document.getElementById('contactForm');
+  // ========== PÁGINA PRINCIPAL (Piano) ==========
+  if (isMainPage) {
+    // Cargar mapeo de teclas personalizado si existe
+    loadKeyMapping();
     
-    if (mensajeConfirmacion && contactForm) {
-      mensajeConfirmacion.style.display = 'block';
-      contactForm.style.display = 'none';
+    // Cargar configuración local
+    await preloadAllSamplers();
+
+    // Asignar letras a los botones
+    Object.entries(keyToTomId).forEach(([key, tomId]) => {
+      const boton = document.getElementById(tomId);
+      if (boton) {
+        const span = boton.querySelector('.battery__tom-key');
+        if (span) span.textContent = key.toUpperCase();
+      }
+    });
+
+    // Volumen
+    const sliderVolumen = document.getElementById('volumenSlider');
+    const labelPorcentaje = document.getElementById('volumenPorcentaje');
+    if (sliderVolumen) {
+      const actualizarLabel = v => labelPorcentaje && (labelPorcentaje.textContent = Math.round(v * 100) + '%');
+      if (labelPorcentaje) actualizarLabel(sliderVolumen.value);
+      sliderVolumen.addEventListener('input', e => {
+        currentVolume = +e.target.value;
+        actualizarLabel(currentVolume);
+      });
+      sliderVolumen.addEventListener('wheel', e => {
+        e.preventDefault();
+        const step = parseFloat(sliderVolumen.step) || 0.01;
+        let nuevoValor = parseFloat(sliderVolumen.value) + (e.deltaY < 0 ? step : -step);
+        nuevoValor = Math.max(parseFloat(sliderVolumen.min), Math.min(parseFloat(sliderVolumen.max), nuevoValor));
+        sliderVolumen.value = nuevoValor;
+        sliderVolumen.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    }
+
+    // Elementos de edición
+    const editarBtn = document.getElementById('editarLetrasBtn');
+    const editarSamplersBtn = document.getElementById('editarSamplersBtn');
+    const editIcons = document.querySelectorAll('.edit-icon');
+    const modal = document.getElementById('modalEditarTecla');
+    const input = document.getElementById('nuevaTeclaInput');
+    const guardarBtn = document.getElementById('guardarTeclaBtn');
+    const cancelarBtn = document.getElementById('cancelarTeclaBtn');
+    const modalSampler = document.getElementById('modalEditarSampler');
+    const listaSamplers = document.getElementById('listaSamplers');
+    const guardarSamplerBtn = document.getElementById('guardarSamplerBtn');
+    const cancelarSamplerBtn = document.getElementById('cancelarSamplerBtn');
+
+    // Ocultar íconos de edición al inicio
+    editIcons.forEach(icon => icon.style.display = 'none');
+    const actualizarVisibilidadIconosEdicion = () => editIcons.forEach(icon => icon.style.display = (window.modoEdicionActivo || window.modoEdicionSamplers) ? 'inline-block' : 'none');
+
+    // Funciones de actualización de botones
+    const actualizarTextoBotonEdicion = () => {
+      editarBtn.textContent = window.modoEdicionActivo ? 'Desactivar edición de teclas' : 'Editar letras';
+      editarBtn.classList.toggle('modo-edicion-activa', window.modoEdicionActivo);
+    };
+    const actualizarTextoBotonEdicionSamplers = () => {
+      editarSamplersBtn.textContent = window.modoEdicionSamplers ? 'Desactivar edición de samplers' : 'Editar samplers';
+      editarSamplersBtn.classList.toggle('modo-edicion-activa', window.modoEdicionSamplers);
+    };
+    
+    actualizarTextoBotonEdicion();
+    actualizarTextoBotonEdicionSamplers();
+
+    // Event listeners para botones de edición
+    editarBtn.addEventListener('click', () => {
+      window.modoEdicionActivo = !window.modoEdicionActivo;
+      if (window.modoEdicionActivo) {
+        window.modoEdicionSamplers = false;
+        editarSamplersBtn.classList.remove('modo-edicion-activa');
+      }
+      document.body.classList.toggle('modo-edicion', window.modoEdicionActivo);
+      actualizarVisibilidadIconosEdicion();
+      editarBtn.disabled = false;
+      editarSamplersBtn.disabled = false;
+      actualizarTextoBotonEdicion();
+      actualizarTextoBotonEdicionSamplers();
+      editarSamplersBtn.textContent = 'Editar samplers';
+      if (!window.modoEdicionActivo && modal && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+        tomEditando = null;
+      }
+      if (window.modoEdicionActivo && modalSampler && modalSampler.style.display === 'flex') {
+        modalSampler.style.display = 'none';
+        tomSamplerEditando = null;
+      }
+    });
+    
+    editarSamplersBtn.addEventListener('click', () => {
+      window.modoEdicionSamplers = !window.modoEdicionSamplers;
+      if (window.modoEdicionSamplers) {
+        window.modoEdicionActivo = false;
+        editarBtn.classList.remove('modo-edicion-activa');
+      }
+      document.body.classList.toggle('modo-edicion', window.modoEdicionSamplers);
+      actualizarVisibilidadIconosEdicion();
+      editarSamplersBtn.disabled = false;
+      editarBtn.disabled = false;
+      actualizarTextoBotonEdicionSamplers();
+      actualizarTextoBotonEdicion();
+      editarBtn.textContent = 'Editar letras';
+      if (!window.modoEdicionSamplers && modalSampler && modalSampler.style.display === 'flex') {
+        modalSampler.style.display = 'none';
+        tomSamplerEditando = null;
+      }
+      if (window.modoEdicionSamplers && modal && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+        tomEditando = null;
+      }
+    });
+
+    // Mostrar modal de edición de letra al hacer clic en el ícono de editar
+    document.querySelectorAll('.edit-icon').forEach(icon => {
+      icon.addEventListener('click', e => {
+        if (!window.modoEdicionActivo) return;
+        e.stopPropagation();
+        const boton = icon.closest('.battery__tom');
+        if (!boton) return;
+        tomEditando = boton;
+        if (modal) {
+          modal.style.display = 'flex';
+          input.value = '';
+          input.focus();
+        }
+      });
+    });
+
+    // Mostrar modal de edición de sampler al hacer clic en el ícono de editar (cuando está activo modo samplers)
+    document.querySelectorAll('.edit-icon').forEach(icon => {
+      icon.addEventListener('click', async e => {
+        if (!window.modoEdicionSamplers) return;
+        e.stopPropagation();
+        const boton = icon.closest('.battery__tom');
+        if (!boton) return;
+        tomSamplerEditando = boton;
+        if (modalSampler) {
+          // Cargar la lista de samplers disponibles
+          if (typeof cargarSamplersDisponibles === 'function') {
+            await cargarSamplersDisponibles();
+          }
+          if (listaSamplers) {
+            listaSamplers.innerHTML = '';
+            samplersDisponibles.forEach(sampler => {
+              const li = document.createElement('li');
+              // Mostrar solo el nombre del archivo
+              const nombreArchivo = sampler.split('/').pop();
+              li.textContent = nombreArchivo;
+              li.className = 'sampler-item';
+              li.tabIndex = 0;
+              li.addEventListener('click', async () => {
+                document.querySelectorAll('.sampler-item').forEach(el => el.classList.remove('selected'));
+                li.classList.add('selected');
+                samplerSeleccionado = nombreArchivo;
+                // Previsualizar sonido, deteniendo el anterior si existe
+                if (window._previewSource && typeof window._previewSource.stop === 'function') {
+                  try { window._previewSource.stop(); } catch { }
+                }
+                try {
+                // Preview using the correct sampler path
+                  const path = 'samplers/' + nombreArchivo;
+                  if (audioCtx.state !== 'running') {
+                    await audioCtx.resume();
+                  }
+                  const buffer = await loadSamplerBuffer(path);
+                  const source = audioCtx.createBufferSource();
+                  const gainNode = audioCtx.createGain();
+                  gainNode.gain.value = currentVolume;
+                  source.buffer = buffer;
+                  source.connect(gainNode).connect(audioCtx.destination);
+                  source.start();
+                  window._previewSource = source;
+                } catch (e) {
+                  // Si falla, no hacer nada (puede ser error de carga o contexto)
+                }
+              });
+              li.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  li.click();
+                }
+              });
+              // Selecciona el actual
+              if (tomAudioMap[boton.id] && tomAudioMap[boton.id].toLowerCase().includes(nombreArchivo.toLowerCase())) {
+                li.classList.add('selected');
+                samplerSeleccionado = nombreArchivo;
+              }
+              listaSamplers.appendChild(li);
+            });
+          }
+          modalSampler.style.display = 'flex';
+        }
+      });
+    });
+
+    // Modal de confirmación para restablecer ajustes
+    const btnReset = document.getElementById('btnResetAjustes');
+    const modalReset = document.getElementById('modalConfirmarReset');
+    const confirmarResetBtn = document.getElementById('confirmarResetBtn');
+    const cancelarResetBtn = document.getElementById('cancelarResetBtn');
+    if (btnReset && modalReset && confirmarResetBtn && cancelarResetBtn) {
+      btnReset.addEventListener('click', () => {
+        modalReset.style.display = 'flex';
+        confirmarResetBtn.focus();
+      });
+      confirmarResetBtn.addEventListener('click', () => {
+        resetSettings();
+        modalReset.style.display = 'none';
+      });
+      cancelarResetBtn.addEventListener('click', () => {
+        modalReset.style.display = 'none';
+      });
+      modalReset.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          modalReset.style.display = 'none';
+        }
+      });
+    }
+
+    // Guardar selección de sampler
+    if (guardarSamplerBtn) {
+      guardarSamplerBtn.addEventListener('click', async () => {
+        if (!samplerSeleccionado || !tomSamplerEditando) return;
+        const tomId = tomSamplerEditando.id;
+        const nombre = samplerSeleccionado;
+        tomAudioMap[tomId] = nombre;
+        tomSamplerBuffers[tomId] = await loadSamplerBuffer('samplers/' + nombre);
+        saveSamplers();
+        modalSampler.style.display = 'none';
+        tomSamplerEditando = null;
+        samplerSeleccionado = null;
+      });
+    }
+    
+    if (cancelarSamplerBtn) {
+      cancelarSamplerBtn.addEventListener('click', () => {
+        modalSampler.style.display = 'none';
+        tomSamplerEditando = null;
+        samplerSeleccionado = null;
+      });
+    }
+    
+    if (modalSampler) {
+      modalSampler.addEventListener('keydown', e => { if (e.key === 'Escape' && cancelarSamplerBtn) cancelarSamplerBtn.click(); });
+    }
+
+    // Guardar nueva letra
+    if (guardarBtn) {
+      guardarBtn.addEventListener('click', () => {
+        if (!input || !tomEditando) return;
+        const letra = input.value.trim().toUpperCase();
+        if (!letra || letra.length !== 1) return input.focus();
+        const spanKey = tomEditando.querySelector('.battery__tom-key');
+        if (spanKey) spanKey.textContent = letra;
+        const tomId = tomEditando.id;
+        for (const [key, id] of Object.entries(keyToTomId)) {
+          if (id === tomId) {
+            delete keyToTomId[key];
+            keyToTomId[letra.toLowerCase()] = tomId;
+            break;
+          }
+        }
+        saveKeyMapping();
+        if (modal) modal.style.display = 'none';
+        tomEditando = null;
+        if (editarBtn) editarBtn.disabled = false;
+        window.modoEdicionActivo = modoEdicionActivo;
+        document.body.classList.toggle('modo-edicion', modoEdicionActivo);
+        editIcons.forEach(icon => icon.style.display = window.modoEdicionActivo ? 'inline-block' : 'none');
+      });
+    }
+    
+    if (cancelarBtn) {
+      cancelarBtn.addEventListener('click', () => {
+        if (modal) modal.style.display = 'none';
+        tomEditando = null;
+        if (editarBtn) editarBtn.disabled = false;
+        window.modoEdicionActivo = modoEdicionActivo;
+        document.body.classList.toggle('modo-edicion', modoEdicionActivo);
+        editIcons.forEach(icon => icon.style.display = window.modoEdicionActivo ? 'inline-block' : 'none');
+      });
+    }
+    
+    if (input) {
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && cancelarBtn) cancelarBtn.click();
+        if (e.key === 'Enter' && guardarBtn) guardarBtn.click();
+      });
+    }
+
+    // Eventos de teclado para activar los toms
+    document.addEventListener('keydown', async e => {
+      const modal = document.getElementById('modalEditarTecla');
+      if ((modal && modal.style.display === 'flex') || window.modoEdicionActivo || window.modoEdicionSamplers) return;
       
-      // Limpiar la URL después de 5 segundos
-      setTimeout(() => {
-        window.history.replaceState({}, document.title, window.location.pathname);
-        mensajeConfirmacion.style.display = 'none';
-        contactForm.style.display = 'block';
-      }, 5000);
+      // Verificar que e.key existe antes de usar toLowerCase
+      if (!e.key) return;
+      
+      const tomId = keyToTomId[e.key.toLowerCase()];
+      if (tomId) {
+        e.preventDefault();
+        await activateTomSampler(tomId);
+      }
+    });
+
+    // Eventos de click en los toms
+    Object.keys(tomAudioMap).forEach(tomId => {
+      const boton = document.getElementById(tomId);
+      if (boton) boton.addEventListener('click', async e => {
+        if (window.modoEdicionActivo || window.modoEdicionSamplers) {
+          e.stopPropagation();
+          e.preventDefault();
+          return;
+        }
+        await activateTomSampler(tomId);
+      });
+    });
+
+    // Reanudar AudioContext y recargar buffer tras volver al navegador
+    window.addEventListener('focus', async () => {
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      // Recargar buffers para evitar bug de volumen bajo
+      await preloadAllSamplers();
+    });
+
+    // Botón de guardar sonidos
+    const saveSamplersBtn = document.getElementById('guardarSamplerBtn');
+    if (saveSamplersBtn) {
+      saveSamplersBtn.addEventListener('click', () => {
+        saveSamplers();
+      });
     }
   }
 
-  // Manejar envío del formulario con animación
-  const contactForm = document.getElementById('contactForm');
-  if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
-      const submitBtn = contactForm.querySelector('.btn-enviar');
-      if (submitBtn) {
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-        submitBtn.disabled = true;
+  // ========== PÁGINA DE CONTACTO ==========
+  if (isContactPage) {
+    // Verificar si hay parámetro de confirmación en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('enviado') === 'true') {
+      const confirmationMessage = document.getElementById('confirmation-message');
+      const contactForm = document.getElementById('contact-form');
+      
+      if (confirmationMessage && contactForm) {
+        confirmationMessage.style.display = 'block';
+        contactForm.style.display = 'none';
+        
+        // Limpiar la URL después de 5 segundos
+        setTimeout(() => {
+          window.history.replaceState({}, document.title, window.location.pathname);
+          confirmationMessage.style.display = 'none';
+          contactForm.style.display = 'block';
+        }, 5000);
       }
-    });
+    }
+
+    // Manejar envío del formulario con AJAX
+    const contactForm = document.getElementById('contact-form');
+    if (contactForm) {
+      contactForm.addEventListener('submit', async function(e) {
+        e.preventDefault(); // Prevenir el envío normal del formulario
+        
+        const submitBtn = contactForm.querySelector('.send-button');
+        const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
+        
+        if (submitBtn) {
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+          submitBtn.disabled = true;
+        }
+
+        const formData = new FormData(contactForm);
+        
+        try {
+          const response = await fetch('https://formspree.io/f/xqalyldq', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            // Mostrar mensaje de confirmación y ocultar formulario
+            const confirmationMessage = document.getElementById('confirmation-message');
+            if (confirmationMessage) {
+              confirmationMessage.style.display = 'block';
+              contactForm.style.display = 'none';
+              // Limpiar formulario
+              contactForm.reset();
+            }
+          } else {
+            alert('Hubo un error al enviar el mensaje. Intenta nuevamente.');
+          }
+        } catch (error) {
+          alert('Hubo un error de conexión. Intenta nuevamente.');
+        } finally {
+          if (submitBtn) {
+            submitBtn.innerHTML = originalBtnContent;
+            submitBtn.disabled = false;
+          }
+        }
+      });
+    }
+
+    // Botón para volver al formulario
+    const backToFormBtn = document.getElementById('back-to-form');
+    if (backToFormBtn) {
+      backToFormBtn.addEventListener('click', function() {
+        const confirmationMessage = document.getElementById('confirmation-message');
+        const contactForm = document.getElementById('contact-form');
+        if (confirmationMessage && contactForm) {
+          confirmationMessage.style.display = 'none';
+          contactForm.style.display = 'block';
+        }
+      });
+    }
   }
 });

@@ -67,29 +67,29 @@
   </header>
 
   <main>
-    <div class="contacto-container">
+    <div class="contact-container">
       <h2>¡Hablemos!</h2>
-      <p class="intro-contacto">
+      <p class="contact-intro">
         ¿Tienes alguna pregunta, sugerencia o quieres colaborar con nosotros? 
         Completa el formulario y te responderemos lo antes posible. ¡Nos encanta escuchar de nuestra comunidad champetera!
       </p>
 
-      <div class="formulario-contacto">
+      <div class="contact-form-section">
         <h3>Envíanos un mensaje</h3>
-        <form id="contactForm" class="contact-form" action="https://formspree.io/f/xqalyldq" method="POST">
+        <form id="contact-form" class="contact-form" method="POST">
           <div class="form-group">
-            <label for="nombre">Nombre *</label>
-            <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre completo">
+            <label for="name">Nombre:</label>
+            <input type="text" id="name" name="fullName" required placeholder="Tu nombre completo">
           </div>
 
           <div class="form-group">
-            <label for="email">Email *</label>
-            <input type="email" id="email" name="email" required placeholder="tu@email.com">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="emailAddress" required placeholder="tu@email.com">
           </div>
 
           <div class="form-group">
-            <label for="asunto">Asunto *</label>
-            <select id="asunto" name="asunto" required>
+            <label for="subject">Asunto:</label>
+            <select id="subject" name="messageSubject" required>
               <option value="">Selecciona un tema</option>
               <option value="Soporte técnico">Soporte técnico</option>
               <option value="Sugerencia/Mejora">Sugerencia/Mejora</option>
@@ -100,30 +100,32 @@
           </div>
 
           <div class="form-group">
-            <label for="mensaje">Mensaje *</label>
-            <textarea id="mensaje" name="mensaje" required placeholder="Cuéntanos tu consulta, sugerencia o propuesta..." rows="5"></textarea>
+            <label for="message">Mensaje:</label>
+            <textarea id="message" name="messageContent" required placeholder="Cuéntanos tu consulta, sugerencia o propuesta..." rows="5"></textarea>
           </div>
 
           <!-- Campo oculto para identificar el sitio -->
           <input type="hidden" name="_subject" value="Nuevo mensaje desde Batería Champetera Virtual">
-          <input type="hidden" name="_next" value="https://bateriachampetera.com/contactanos.html?enviado=true">
 
-          <button type="submit" class="btn-enviar">
+          <button type="submit" class="send-button">
             <i class="fas fa-paper-plane"></i> Enviar Mensaje
           </button>
         </form>
 
         <!-- Mensaje de confirmación -->
-        <div id="mensajeConfirmacion" class="mensaje-confirmacion" style="display: none;">
-          <div class="confirmacion-content">
+        <div id="confirmation-message" class="confirmation-message">
+          <div class="confirmation-content">
             <i class="fas fa-check-circle"></i>
             <h4>¡Mensaje enviado correctamente!</h4>
             <p>Gracias por contactarnos. Te responderemos lo antes posible.</p>
+            <button type="button" id="back-to-form" class="send-button">
+              <i class="fas fa-arrow-left"></i> Enviar otro mensaje
+            </button>
           </div>
         </div>
       </div>
 
-      <div class="info-adicional">
+      <div class="additional-info">
         <h3>Información adicional</h3>
         <div class="info-grid">
           <div class="info-item">
@@ -147,7 +149,7 @@
   </main>
 
   <footer>
-    <p id="footerYear">© Piano Champetero <span id="anioFooter"></span>. Todos los derechos reservados. v.2.0</p>
+    <p id="footer-year">© Piano Champetero <span id="year-footer"></span>. Todos los derechos reservados. v.2.0</p>
   </footer>
 
   <script src="main.js"></script>
