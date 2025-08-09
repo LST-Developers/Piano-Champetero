@@ -1,15 +1,15 @@
 // Estado global
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const tomSamplersDefaults = {
-  tom1: 'D (2).wav',
-  tom2: 'F4.wav',
-  tom3: 'Pitico.wav',
-  tom4: 'SKTAC.WAV',
-  tom5: 'Y.wav',
-  tom6: 'Lazer.wav',
-  tom7: 'perro bajo.WAV',
-  tom8: 'SK2.WAV',
-  tom9: 'Smar 1.wav'
+  'tom-1': 'D (2).wav',
+  'tom-2': 'F4.wav',
+  'tom-3': 'Pitico.wav',
+  'tom-4': 'SKTAC.WAV',
+  'tom-5': 'Y.wav',
+  'tom-6': 'Lazer.wav',
+  'tom-7': 'perro bajo.WAV',
+  'tom-8': 'SK2.WAV',
+  'tom-9': 'Smar 1.wav'
 };
 
 const samplerList = [
@@ -48,7 +48,7 @@ let tomAudioMap;
     }
   }
 })();
-const keyToTomIdDefaults = { q: 'tom1', w: 'tom2', e: 'tom3', a: 'tom4', s: 'tom5', d: 'tom6', z: 'tom7', x: 'tom8', c: 'tom9' };
+const keyToTomIdDefaults = { q: 'tom-1', w: 'tom-2', e: 'tom-3', a: 'tom-4', s: 'tom-5', d: 'tom-6', z: 'tom-7', x: 'tom-8', c: 'tom-9' };
 // Reset user settings and restore defaults
 function resetSettings() {
   localStorage.removeItem('pianoChampeteroSamplers');
@@ -60,13 +60,13 @@ function resetSettings() {
     Object.entries(keyToTomId).forEach(([key, tomId]) => {
       const button = document.getElementById(tomId);
       if (button) {
-        const span = button.querySelector('.battery__tom-key');
+        const span = button.querySelector('.battery-tom-key');
         if (span) span.textContent = key.toUpperCase();
       }
     });
   });
 }
-const keyToTomId = { q: 'tom1', w: 'tom2', e: 'tom3', a: 'tom4', s: 'tom5', d: 'tom6', z: 'tom7', x: 'tom8', c: 'tom9' };
+const keyToTomId = { q: 'tom-1', w: 'tom-2', e: 'tom-3', a: 'tom-4', s: 'tom-5', d: 'tom-6', z: 'tom-7', x: 'tom-8', c: 'tom-9' };
 const tomSamplerBuffers = {};
 let currentVolume = 0.5;
 let samplersDisponibles = [];
@@ -139,7 +139,7 @@ function playTomSampler(tomId) {
   if (window.modoEdicionActivo || window.modoEdicionSamplers) return;
   const buffer = tomSamplerBuffers[tomId];
   if (!buffer) return;
-  const slider = document.getElementById('volumenSlider');
+  const slider = document.getElementById('volume-slider');
   let volume = currentVolume;
   if (slider) volume = +slider.value;
   const source = audioCtx.createBufferSource();
@@ -166,7 +166,7 @@ async function activateTomSampler(tomId) {
 // --- Inicialización y eventos ---
 document.addEventListener('DOMContentLoaded', async () => {
   // Determinar la página actual
-  const isMainPage = document.getElementById('tom1') !== null;
+  const isMainPage = document.getElementById('tom-1') !== null;
   const isContactPage = document.getElementById('contact-form') !== null;
   
   // Funciones comunes para todas las páginas
@@ -205,14 +205,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     Object.entries(keyToTomId).forEach(([key, tomId]) => {
       const boton = document.getElementById(tomId);
       if (boton) {
-        const span = boton.querySelector('.battery__tom-key');
+        const span = boton.querySelector('.battery-tom-key');
         if (span) span.textContent = key.toUpperCase();
       }
     });
 
     // Volumen
-    const sliderVolumen = document.getElementById('volumenSlider');
-    const labelPorcentaje = document.getElementById('volumenPorcentaje');
+    const sliderVolumen = document.getElementById('volume-slider');
+    const labelPorcentaje = document.getElementById('volume-percent');
     if (sliderVolumen) {
       const actualizarLabel = v => labelPorcentaje && (labelPorcentaje.textContent = Math.round(v * 100) + '%');
       if (labelPorcentaje) actualizarLabel(sliderVolumen.value);
@@ -231,17 +231,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Elementos de edición
-    const editarBtn = document.getElementById('editarLetrasBtn');
-    const editarSamplersBtn = document.getElementById('editarSamplersBtn');
+    const editarBtn = document.getElementById('edit-keys-btn');
+    const editarSamplersBtn = document.getElementById('edit-samplers-btn');
     const editIcons = document.querySelectorAll('.edit-icon');
-    const modal = document.getElementById('modalEditarTecla');
-    const input = document.getElementById('nuevaTeclaInput');
-    const guardarBtn = document.getElementById('guardarTeclaBtn');
-    const cancelarBtn = document.getElementById('cancelarTeclaBtn');
-    const modalSampler = document.getElementById('modalEditarSampler');
-    const listaSamplers = document.getElementById('listaSamplers');
-    const guardarSamplerBtn = document.getElementById('guardarSamplerBtn');
-    const cancelarSamplerBtn = document.getElementById('cancelarSamplerBtn');
+    const modal = document.getElementById('modal-edit-key');
+    const input = document.getElementById('new-key-input');
+    const guardarBtn = document.getElementById('save-key-btn');
+    const cancelarBtn = document.getElementById('cancel-key-btn');
+    const modalSampler = document.getElementById('modal-edit-sampler');
+    const listaSamplers = document.getElementById('sampler-list');
+    const guardarSamplerBtn = document.getElementById('save-sampler-btn');
+    const cancelarSamplerBtn = document.getElementById('cancel-sampler-btn');
 
     // Ocultar íconos de edición al inicio
     editIcons.forEach(icon => icon.style.display = 'none');
@@ -250,11 +250,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Funciones de actualización de botones
     const actualizarTextoBotonEdicion = () => {
       editarBtn.textContent = window.modoEdicionActivo ? 'Desactivar edición de teclas' : 'Editar letras';
-      editarBtn.classList.toggle('modo-edicion-activa', window.modoEdicionActivo);
+      editarBtn.classList.toggle('edit-mode-active', window.modoEdicionActivo);
     };
     const actualizarTextoBotonEdicionSamplers = () => {
       editarSamplersBtn.textContent = window.modoEdicionSamplers ? 'Desactivar edición de samplers' : 'Editar samplers';
-      editarSamplersBtn.classList.toggle('modo-edicion-activa', window.modoEdicionSamplers);
+      editarSamplersBtn.classList.toggle('edit-mode-active', window.modoEdicionSamplers);
     };
     
     actualizarTextoBotonEdicion();
@@ -265,9 +265,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.modoEdicionActivo = !window.modoEdicionActivo;
       if (window.modoEdicionActivo) {
         window.modoEdicionSamplers = false;
-        editarSamplersBtn.classList.remove('modo-edicion-activa');
+        editarSamplersBtn.classList.remove('edit-mode-active');
       }
-      document.body.classList.toggle('modo-edicion', window.modoEdicionActivo);
+      document.body.classList.toggle('edit-mode', window.modoEdicionActivo);
       actualizarVisibilidadIconosEdicion();
       editarBtn.disabled = false;
       editarSamplersBtn.disabled = false;
@@ -288,9 +288,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.modoEdicionSamplers = !window.modoEdicionSamplers;
       if (window.modoEdicionSamplers) {
         window.modoEdicionActivo = false;
-        editarBtn.classList.remove('modo-edicion-activa');
+        editarBtn.classList.remove('edit-mode-active');
       }
-      document.body.classList.toggle('modo-edicion', window.modoEdicionSamplers);
+      document.body.classList.toggle('edit-mode', window.modoEdicionSamplers);
       actualizarVisibilidadIconosEdicion();
       editarSamplersBtn.disabled = false;
       editarBtn.disabled = false;
@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       icon.addEventListener('click', e => {
         if (!window.modoEdicionActivo) return;
         e.stopPropagation();
-        const boton = icon.closest('.battery__tom');
+        const boton = icon.closest('.battery-tom');
         if (!boton) return;
         tomEditando = boton;
         if (modal) {
@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       icon.addEventListener('click', async e => {
         if (!window.modoEdicionSamplers) return;
         e.stopPropagation();
-        const boton = icon.closest('.battery__tom');
+        const boton = icon.closest('.battery-tom');
         if (!boton) return;
         tomSamplerEditando = boton;
         if (modalSampler) {
@@ -390,10 +390,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Modal de confirmación para restablecer ajustes
-    const btnReset = document.getElementById('btnResetAjustes');
-    const modalReset = document.getElementById('modalConfirmarReset');
-    const confirmarResetBtn = document.getElementById('confirmarResetBtn');
-    const cancelarResetBtn = document.getElementById('cancelarResetBtn');
+    const btnReset = document.getElementById('reset-settings-btn');
+    const modalReset = document.getElementById('modal-confirm-reset');
+    const confirmarResetBtn = document.getElementById('confirm-reset-btn');
+    const cancelarResetBtn = document.getElementById('cancel-reset-btn');
     if (btnReset && modalReset && confirmarResetBtn && cancelarResetBtn) {
       btnReset.addEventListener('click', () => {
         modalReset.style.display = 'flex';
@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!input || !tomEditando) return;
         const letra = input.value.trim().toUpperCase();
         if (!letra || letra.length !== 1) return input.focus();
-        const spanKey = tomEditando.querySelector('.battery__tom-key');
+        const spanKey = tomEditando.querySelector('.battery-tom-key');
         if (spanKey) spanKey.textContent = letra;
         const tomId = tomEditando.id;
         for (const [key, id] of Object.entries(keyToTomId)) {
@@ -460,8 +460,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (modal) modal.style.display = 'none';
         tomEditando = null;
         if (editarBtn) editarBtn.disabled = false;
-        window.modoEdicionActivo = modoEdicionActivo;
-        document.body.classList.toggle('modo-edicion', modoEdicionActivo);
+        document.body.classList.toggle('edit-mode', window.modoEdicionActivo);
         editIcons.forEach(icon => icon.style.display = window.modoEdicionActivo ? 'inline-block' : 'none');
       });
     }
@@ -471,8 +470,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (modal) modal.style.display = 'none';
         tomEditando = null;
         if (editarBtn) editarBtn.disabled = false;
-        window.modoEdicionActivo = modoEdicionActivo;
-        document.body.classList.toggle('modo-edicion', modoEdicionActivo);
+        document.body.classList.toggle('edit-mode', window.modoEdicionActivo);
         editIcons.forEach(icon => icon.style.display = window.modoEdicionActivo ? 'inline-block' : 'none');
       });
     }
@@ -486,7 +484,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Eventos de teclado para activar los toms
     document.addEventListener('keydown', async e => {
-      const modal = document.getElementById('modalEditarTecla');
+      const modal = document.getElementById('modal-edit-key');
       if ((modal && modal.style.display === 'flex') || window.modoEdicionActivo || window.modoEdicionSamplers) return;
       
       // Verificar que e.key existe antes de usar toLowerCase
@@ -520,7 +518,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Botón de guardar sonidos
-    const saveSamplersBtn = document.getElementById('guardarSamplerBtn');
+    const saveSamplersBtn = document.getElementById('save-sampler-btn');
     if (saveSamplersBtn) {
       saveSamplersBtn.addEventListener('click', () => {
         saveSamplers();

@@ -1,0 +1,81 @@
+/* Estilos comunes (usar junto con reset.css) */
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap');
+
+/* ===================== VARIABLES ===================== */
+:root {
+  --color-principal: #FF9A56;
+  --color-secundario: #FF6B6B;
+  --color-amarillo: #FFE066;
+  --color-marron: #8B4513;
+  --color-footer: #FFF5E6;
+  --borde-radius: 8px;
+  --sombra-btn: 0 2px 8px rgba(0,0,0,0.10);
+  --sombra-btn-hover: 0 4px 16px rgba(0,0,0,0.14);
+}
+
+/* ===================== BASE ===================== */
+html, body { height: 100%; margin: 0; padding: 0; overflow-x: hidden; }
+body {
+  display: flex; flex-direction: column; min-height: 100vh;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 224, 102, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(255, 107, 107, 0.2) 0%, transparent 50%),
+    linear-gradient(135deg, var(--color-amarillo) 0%, var(--color-principal) 25%, var(--color-secundario) 50%, #FFB7C5 75%, var(--color-footer) 100%);
+  background-attachment: fixed;
+  background-size: 400% 400%;
+  animation: gradientShift 20s ease infinite;
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+main { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: auto; padding: 1rem 0; }
+
+/* ===================== HEADER ===================== */
+header {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2)), url('../images/bateria-champetera-atardecer.jpeg');
+  background-size: cover; background-position: center 65%; background-repeat: no-repeat;
+  position: relative; color: #fff; text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.8);
+  padding: 2rem 0 0 0; border-bottom: 3px solid rgba(255, 224, 102, 0.6); flex-shrink: 0;
+}
+.title { font-family: 'Seaweed Script', cursive; font-size: 7em; font-weight: normal; margin: 0.5rem 0; }
+#nav-container { margin: 1rem 0; }
+
+/* ===================== NAVBAR ===================== */
+.main-nav { display: flex; justify-content: center; }
+.main-nav ul { display: flex; gap: 2.5em; list-style: none; padding: 0; margin: 0; }
+.main-nav a {
+  color: #fff; font-size: 1.3em; font-family: inherit; font-weight: 700; text-decoration: none;
+  letter-spacing: 1px; padding: 0.2em 0.5em; border-radius: 4px; transition: color 0.2s, background 0.2s;
+  background: none; box-shadow: none;
+}
+.main-nav a:hover, .main-nav a.active:hover { color: var(--color-principal); background: rgba(255,255,255,0.08); }
+.main-nav a.active { color: var(--color-principal); background: none; }
+
+/* ===================== BOTONES GENERALES ===================== */
+.btn-danger, .btn-reset, .btn-cancel {
+  background: var(--color-secundario) !important;
+  color: #fff !important;
+  border: none;
+  border-radius: var(--borde-radius);
+  font-weight: bold;
+  box-shadow: var(--sombra-btn);
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+}
+.btn-danger:hover, .btn-reset:hover, .btn-cancel:hover { background: var(--color-principal) !important; color: #fff !important; box-shadow: var(--sombra-btn-hover); }
+
+/* ===================== FOOTER ===================== */
+footer {
+  width: 100%; padding: 0.8rem 0; text-align: center;
+  background: linear-gradient(135deg, var(--color-marron) 0%, #A0522D 50%, #CD853F 100%);
+  border-top: 3px solid rgba(255, 224, 102, 0.7);
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3), inset 0 2px 10px rgba(255, 224, 102, 0.2);
+  color: var(--color-footer); font-size: 0.8em; font-weight: 400; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+  position: relative; z-index: 10; transition: all 0.3s ease; flex-shrink: 0; margin-top: auto;
+}
+footer:hover { box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.4), inset 0 2px 15px rgba(255, 224, 102, 0.3); border-top-color: rgba(255, 224, 102, 0.9); }
+footer p { margin: 0; letter-spacing: 0.5px; }
+.ad-inf { display: flex; background-color: lightgray; height: 5em; justify-content: center; align-items: center; }
