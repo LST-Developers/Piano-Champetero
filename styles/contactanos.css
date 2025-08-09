@@ -47,16 +47,16 @@
 /* Mensaje simple verde, si se usa */
 .mensaje-confirmacion { background: rgba(76, 175, 80, 0.1); border: 2px solid #4CAF50; border-radius: var(--borde-radius); padding: 2em; text-align: center; margin-top: 1em; }
 
-/* Información adicional */
-.additional-info { background: rgba(255,255,255,0.8); border-radius: 16px; padding: 2.5em; margin: 3em 0; box-shadow: 0 6px 25px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.6); }
-.additional-info h3 { font-family: 'Seaweed Script', cursive; font-size: 2.5em; color: var(--color-principal); margin-bottom: 1.5em; text-align: center; text-shadow: 1px 1px 3px rgba(0,0,0,0.1); }
-.info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2em; }
-.info-item { text-align: center; padding: 1.8em 1.2em; background: rgba(255,255,255,0.6); border-radius: 12px; transition: all 0.3s ease; border: 2px solid transparent; }
-.info-item:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); border-color: var(--color-principal); background: rgba(255,255,255,0.9); }
-.info-item i { font-size: 2.5em; color: var(--color-principal); margin-bottom: 0.8em; transition: all 0.3s ease; }
-.info-item:hover i { transform: scale(1.1); color: var(--color-secundario); }
-.info-item h4 { color: var(--color-marron); margin: 0.8em 0 0.6em 0; font-size: 1.3em; font-weight: bold; }
-.info-item p { color: #666; font-size: 1em; margin: 0; line-height: 1.6; }
+/* Eliminados estilos de Información adicional (no usados) */
+.additional-info,
+.additional-info h3,
+.info-grid,
+.info-item,
+.info-item:hover,
+.info-item i,
+.info-item:hover i,
+.info-item h4,
+.info-item p { display: none !important; }
 
 /* Responsive */
 @media (min-width: 1400px) { .contact-container { max-width: 1000px; padding: 3em; } }
@@ -72,7 +72,6 @@
   .send-button { padding: 0.9em 1.8em; font-size: 1em; }
   .confirmation-content { margin: 2em 1em; padding: 2em 1.5em; }
   .confirmation-content h4 { font-size: 1.5em; }
-  .info-grid { grid-template-columns: 1fr; gap: 1.5em; }
 }
 @media (max-width: 480px) {
   .contact-container h2 { font-size: 2.2em; }
@@ -81,4 +80,24 @@
   .contact-form-section h3 { font-size: 1.6em; }
   .form-group { margin-bottom: 1.5em; }
   .form-group label { font-size: 1em; }
+}
+
+/* Compacto en escritorio: reduce ancho y espaciados del formulario */
+@media (min-width: 769px) {
+  .contact-container { max-width: 680px; }
+  .contact-intro { margin-bottom: 1.5em; }
+
+  .contact-form-section { padding: 1.5em 1.25em; margin: 1.5em 0; }
+
+  .form-group { margin-bottom: 1.1em; }
+  .form-group label { margin-bottom: 0.5em; }
+  .form-group input,
+  .form-group select,
+  .form-group textarea { padding: 0.75em 1em; font-size: 1em; }
+  .form-group textarea { min-height: 110px; }
+
+  .send-button { margin-top: 1.2em; padding: 0.8em 1.4em; }
+
+  .contact-container h2 { font-size: 2.4em; }
+  .contact-form-section h3 { font-size: 1.6em; }
 }
