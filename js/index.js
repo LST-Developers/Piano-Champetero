@@ -42,16 +42,62 @@ export let currentVolume = 0.5;
 export let samplersDisponibles = [];
 
 // Estado de mapeo de teclas usado por la UI
-let keyToTomId = { ...keyToTomIdDefaults };
+let keyToTomId = {};
 // volumen interno usado en algunas previsualizaciones
 let _currentVolume = currentVolume;
 
 // Persistence helpers (migradas desde main.js)
-export function saveKeyMapping(map) { try { localStorage.setItem('pianoChampeteroKeyMap', JSON.stringify(map)); } catch (e) {} }
+// Guarda el mapa de teclas en localStorage en formato normalizado ('k:char' o 'c:Code')
+export function saveKeyMapping(map) { try { const normalized = normalizeKeyMap(map); localStorage.setItem('pianoChampeteroKeyMap', JSON.stringify(normalized)); } catch (e) {} }
 export function loadKeyMapping() {
   const data = localStorage.getItem('pianoChampeteroKeyMap');
   if (!data) return null;
-  try { return JSON.parse(data); } catch { return null; }
+  try {
+    const parsed = JSON.parse(data);
+    const normalized = normalizeKeyMap(parsed);
+    // si el formato fue migrado (diferente del original), reescribimos para usuarios existentes
+    try {
+      const origStr = JSON.stringify(parsed);
+      const normStr = JSON.stringify(normalized);
+      if (origStr !== normStr) {
+        localStorage.setItem('pianoChampeteroKeyMap', normStr);
+      }
+    } catch (e) { /* ignore write errors */ }
+    return normalized;
+  } catch { return null; }
+}
+
+// Normaliza mapas cargados o por defecto a identificadores internos:
+// - teclas simples (letra/dígito) -> 'k:char'
+// - códigos físicos -> 'c:Code'
+function normalizeKeyMap(rawMap) {
+  // Convierte distintas representaciones a códigos estándar (KeyX, DigitN, NumpadN)
+  const out = {};
+  Object.entries(rawMap || {}).forEach(([k, v]) => {
+    if (!k) return;
+    let code = null;
+    // ya es un code típico
+    if (/^(Key|Digit|Numpad)[A-Za-z0-9]+$/.test(k)) code = k;
+    else if (k.startsWith('c:')) code = k.slice(2); // c:Digit1 etc
+    else if (k.startsWith('k:')) {
+      const ch = k.slice(2);
+      if (/^[A-Za-z]$/.test(ch)) code = 'Key' + ch.toUpperCase();
+      else if (/^[0-9]$/.test(ch)) code = 'Digit' + ch;
+    } else if (/^[A-Za-z]$/.test(k)) code = 'Key' + k.toUpperCase();
+    else if (/^[0-9]$/.test(k)) code = 'Digit' + k;
+    else code = k; // unknown, keep
+    if (code) out[code] = v;
+  });
+  return out;
+}
+
+function prettyLabelFromId(id) {
+  if (!id) return '';
+  // esperamos ahora códigos: KeyX / DigitN / NumpadN
+  if (id.startsWith('Key')) return id.slice(3).toUpperCase();
+  if (id.startsWith('Digit')) return id.slice(5);
+  if (id.startsWith('Numpad')) return id.slice(6);
+  return id.toUpperCase();
 }
 export function saveSamplers() {
   const onlyName = {};
@@ -129,17 +175,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!isMainPage) return;
 
   const savedKeys = loadKeyMapping();
-  if (savedKeys) keyToTomId = { ...savedKeys };
+  if (savedKeys) keyToTomId = normalizeKeyMap(savedKeys);
+  else keyToTomId = normalizeKeyMap(keyToTomIdDefaults);
 
   await preloadAllSamplers();
 
-  Object.entries(keyToTomId).forEach(([key, tomId]) => {
-    const boton = document.getElementById(tomId);
-    if (boton) {
+  // pequeña función reutilizable para actualizar etiquetas de teclas por tom
+  const actualizarEtiquetasTeclas = () => {
+    const tomToKeys = {};
+    Object.entries(keyToTomId).forEach(([key, tomId]) => { tomToKeys[tomId] = tomToKeys[tomId] || []; tomToKeys[tomId].push(key); });
+    Object.keys(tomAudioMap).forEach(tomId => {
+      const boton = document.getElementById(tomId);
+      if (!boton) return;
       const span = boton.querySelector('.battery-tom-key');
-      if (span) span.textContent = key.toUpperCase();
-    }
-  });
+      const keys = tomToKeys[tomId] || [];
+      if (span) span.textContent = keys.map(k => prettyLabelFromId(k)).join(' / ');
+    });
+  };
+
+  actualizarEtiquetasTeclas();
 
   const sliderVolumen = document.getElementById('volume-slider');
   const labelPorcentaje = document.getElementById('volume-percent');
@@ -176,7 +230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const actualizarVisibilidadIconosEdicion = () => editIcons.forEach(icon => icon.style.display = (modoEdicionActivo || modoEdicionSamplers) ? 'inline-block' : 'none');
   const actualizarTextoBotonEdicion = () => {
     if (!editarBtn) return;
-    editarBtn.textContent = modoEdicionActivo ? 'Desactivar edición de teclas' : 'Editar letras';
+    editarBtn.textContent = modoEdicionActivo ? 'Desactivar edición de teclas' : 'Editar teclas';
     editarBtn.classList.toggle('edit-mode-active', modoEdicionActivo);
   };
   const actualizarTextoBotonEdicionSamplers = () => {
@@ -211,28 +265,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (modoEdicionSamplers && modal && modal.style.display === 'flex') { modal.style.display = 'none'; tomEditando = null; }
   });
 
-  // Edit icons: letter edit (only when modoEdicionActivo)
-  document.querySelectorAll('.edit-icon').forEach(icon => {
-    icon.addEventListener('click', e => {
-      if (!modoEdicionActivo) return;
-      e.stopPropagation();
-      const boton = icon.closest('.battery-tom');
-      if (!boton) return;
-      tomEditando = boton;
-      if (modal) { modal.style.display = 'flex'; input.value = ''; input.focus(); }
-    });
-  });
-
-  // Edit icons: sampler edit (when modoEdicionSamplers) — builds list from common.samplersDisponibles via tomAudioMap
+  // Consolidated edit-icon handler: maneja edición de teclas y edición de samplers
   document.querySelectorAll('.edit-icon').forEach(icon => {
     icon.addEventListener('click', async e => {
-      if (!modoEdicionSamplers) return;
       e.stopPropagation();
       const boton = icon.closest('.battery-tom');
       if (!boton) return;
-      tomSamplerEditando = boton;
-      if (modalSampler) {
-        // cargar lista
+      // modo edición de teclas
+      if (modoEdicionActivo) {
+        tomEditando = boton;
+        if (modal) { modal.style.display = 'flex'; input.value = ''; input.focus(); }
+        return;
+      }
+      // modo edición de samplers
+      if (modoEdicionSamplers) {
+        tomSamplerEditando = boton;
+        if (!modalSampler) return;
+        // cargar lista de samplers disponibles a partir de tomAudioMap
         listaSamplers && (listaSamplers.innerHTML = '');
         const posibles = Array.from(new Set(Object.values(tomAudioMap).map(v => v && v.split('/').pop()).filter(Boolean)));
         posibles.forEach(nombreArchivo => {
@@ -267,7 +316,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           listaSamplers && listaSamplers.appendChild(li);
         });
         modalSampler.style.display = 'flex';
+        return;
       }
+      // si no está en modo edición, no hacer nada
     });
   });
 
@@ -293,20 +344,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (modalSampler) modalSampler.addEventListener('keydown', e => { if (e.key === 'Escape' && cancelarSamplerBtn) cancelarSamplerBtn.click(); });
 
   // Guardar nueva letra
+  // El modal ahora también captura la tecla física cuando se presiona
+  let lastCapturedCode = null;
+  if (modal && input) {
+    input.addEventListener('keydown', ev => {
+      ev.stopPropagation();
+      // capturamos el code (ej. KeyQ, Digit1, Numpad1)
+      lastCapturedCode = ev.code || null;
+      if (ev.key === 'Enter') { if (guardarBtn) guardarBtn.click(); }
+      if (ev.key === 'Escape') { if (cancelarBtn) cancelarBtn.click(); }
+    });
+  }
+
   if (guardarBtn) guardarBtn.addEventListener('click', () => {
     if (!input || !tomEditando) return;
-    const letra = input.value.trim().toUpperCase();
-    if (!letra || letra.length !== 1) return input.focus();
+    const raw = input.value.trim();
+    const keyChar = raw.length === 1 ? raw : '';
+    // guardamos directamente el code si existe, sino inferimos Digit/Key
+    let mapKey = null;
+    if (lastCapturedCode) mapKey = lastCapturedCode;
+    else if (keyChar && /^[A-Za-z]$/.test(keyChar)) mapKey = 'Key' + keyChar.toUpperCase();
+    else if (keyChar && /^[0-9]$/.test(keyChar)) mapKey = 'Digit' + keyChar;
+    if (!mapKey) return input.focus();
     const spanKey = tomEditando.querySelector('.battery-tom-key');
-    if (spanKey) spanKey.textContent = letra;
+    if (spanKey) spanKey.textContent = prettyLabelFromId(mapKey);
     const tomId = tomEditando.id;
-    for (const [key, id] of Object.entries(keyToTomId)) {
-      if (id === tomId) {
-        delete keyToTomId[key];
-        keyToTomId[letra.toLowerCase()] = tomId;
-        break;
-      }
-    }
+    // eliminar todas las teclas que apuntaban a este tom
+    Object.keys(keyToTomId).forEach(k => { if (keyToTomId[k] === tomId) delete keyToTomId[k]; });
+    // si la nueva tecla estaba asignada a otro tom, eliminar esa asignación
+    if (keyToTomId[mapKey]) delete keyToTomId[mapKey];
+    // asignar
+    keyToTomId[mapKey] = tomId;
+    // limpiar captura
+    lastCapturedCode = null;
     saveKeyMapping(keyToTomId);
     modal && (modal.style.display = 'none');
     tomEditando = null;
@@ -328,8 +398,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalOpen = document.getElementById('modal-edit-key') && document.getElementById('modal-edit-key').style.display === 'flex';
     if (modalOpen || modoEdicionActivo || modoEdicionSamplers) return;
     if (!e.key) return;
-    const tomId = keyToTomId[e.key.toLowerCase()];
-    if (tomId) { e.preventDefault(); await activateTomSampler(tomId); }
+  // Buscar por código físico (ej. KeyQ, Digit1, Numpad1) directamente
+  const code = e.code || '';
+  // fallback: si no existe el code, intentar Key/Digit inferidos
+  const inferredKey = (/^[0-9]$/.test(e.key)) ? ('Digit' + e.key) : ('Key' + (e.key || '').toUpperCase());
+  const tomId = keyToTomId[code] || keyToTomId[inferredKey] || keyToTomId[e.key.toLowerCase()];
+  if (tomId) { e.preventDefault(); await activateTomSampler(tomId); }
   });
 
   // Click on toms
@@ -355,18 +429,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (btnReset && modalReset && confirmarResetBtn && cancelarResetBtn) {
     btnReset.addEventListener('click', () => { modalReset.style.display = 'flex'; confirmarResetBtn.focus(); });
     confirmarResetBtn.addEventListener('click', async () => {
-      resetSettings();
-      // recargar samplers y UI
-      await preloadAllSamplers();
-      Object.entries(keyToTomIdDefaults).forEach(([k, v]) => keyToTomId[k] = v);
-      Object.entries(keyToTomId).forEach(([key, tomId]) => {
-        const button = document.getElementById(tomId);
-        if (button) {
-          const span = button.querySelector('.battery-tom-key');
-          if (span) span.textContent = key.toUpperCase();
-        }
-      });
-      modalReset.style.display = 'none';
+  resetSettings();
+  // recargar samplers y UI
+  await preloadAllSamplers();
+  keyToTomId = normalizeKeyMap(keyToTomIdDefaults);
+  actualizarEtiquetasTeclas();
+  modalReset.style.display = 'none';
     });
     cancelarResetBtn.addEventListener('click', () => { modalReset.style.display = 'none'; });
     modalReset.addEventListener('keydown', e => { if (e.key === 'Escape') modalReset.style.display = 'none'; });
