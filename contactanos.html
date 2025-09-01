@@ -81,7 +81,7 @@
   </header>
 
   <main>
-    <div class="contact-container">
+    <section class="contact-container content-card">
       <h2>¡Hablemos!</h2>
       <p class="contact-intro">
         ¿Tienes alguna pregunta, sugerencia o quieres colaborar con nosotros? 
@@ -91,31 +91,33 @@
       <div class="contact-form-section">
         <h3>Envíanos un mensaje</h3>
         <form id="contact-form" class="contact-form" method="POST">
-          <div class="form-group">
-            <label for="name">Nombre:</label>
-            <input type="text" id="name" name="fullName" required placeholder="Tu nombre completo">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Nombre:</label>
+              <input type="text" id="name" name="fullName" required placeholder="Tu nombre completo">
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email:</label>
+              <input type="email" id="email" name="emailAddress" required placeholder="tu@email.com">
+            </div>
+
+            <div class="form-group">
+              <label for="subject">Asunto:</label>
+              <select id="subject" name="messageSubject" required>
+                <option value="">Selecciona un tema</option>
+                <option value="Soporte técnico">Soporte técnico</option>
+                <option value="Sugerencia/Mejora">Sugerencia/Mejora</option>
+                <option value="Propuesta de colaboración">Propuesta de colaboración</option>
+                <option value="Reportar un error">Reportar un error</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="emailAddress" required placeholder="tu@email.com">
-          </div>
-
-          <div class="form-group">
-            <label for="subject">Asunto:</label>
-            <select id="subject" name="messageSubject" required>
-              <option value="">Selecciona un tema</option>
-              <option value="Soporte técnico">Soporte técnico</option>
-              <option value="Sugerencia/Mejora">Sugerencia/Mejora</option>
-              <option value="Propuesta de colaboración">Propuesta de colaboración</option>
-              <option value="Reportar un error">Reportar un error</option>
-              <option value="Otro">Otro</option>
-            </select>
-          </div>
-
-          <div class="form-group">
+          <div class="form-group form-group--full">
             <label for="message">Mensaje:</label>
-            <textarea id="message" name="messageContent" required placeholder="Cuéntanos tu consulta, sugerencia o propuesta..." rows="5"></textarea>
+            <textarea id="message" name="messageContent" required placeholder="Cuéntanos tu consulta, sugerencia o propuesta..." rows="6"></textarea>
           </div>
 
           <!-- Campo oculto para identificar el sitio -->
@@ -138,7 +140,7 @@
           </div>
         </div>
       </div>
-    </div>
+  </section>
   </main>
 
   <footer>

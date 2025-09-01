@@ -33,14 +33,24 @@ body {
 
 main { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: auto; padding: 1rem 0; }
 
-/* ===== Contenedores compartidos (paneles de contenido) ===== */
-/* Extrae propiedades comunes usadas por varias páginas para evitar duplicación */
-.about-us, .contact-container, .policy-container {
-  background: rgba(255,255,255,0.85);
+/* ===== Contenedor estándar para páginas (tarjeta de contenido) ===== */
+/* Usar la clase `content-card` en los elementos que deban compartir el mismo estilo.
+   Esto garantiza ancho máximo, padding y apariencia consistente entre páginas. */
+.content-card {
+  background: rgba(255,255,255,0.95);
   border-radius: 18px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.10);
   font-family: 'Roboto', Arial, sans-serif;
+  padding: 2.2em 2em 1.5em;
+  max-width: 900px;
+  width: calc(100% - 4rem);
+  margin: 2rem auto;
+  box-sizing: border-box;
 }
+
+/* Titulos dentro de la tarjeta de contenido */
+.content-card h2 { font-family: 'Seaweed Script', cursive; font-size: 2.6em; color: var(--color-principal); margin-top: 0; text-align: center; }
+.content-card h3 { font-family: 'Seaweed Script', cursive; font-size: 1.8em; color: var(--color-principal); }
 
 /* ===================== HEADER ===================== */
 header {

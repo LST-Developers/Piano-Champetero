@@ -1,6 +1,6 @@
 /* Estilos específicos de contactanos.html */
 
-.contact-container { max-width: 900px; margin: 2em auto; padding: 2.5em; backdrop-filter: blur(10px); }
+.contact-container { backdrop-filter: blur(10px); }
 .contact-container h2 { font-family: 'Seaweed Script', cursive; font-size: 3em; color: var(--color-principal); text-align: center; margin-bottom: 0.8em; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
 .contact-intro { font-size: 1.2em; color: #555; text-align: center; margin-bottom: 3em; line-height: 1.8; margin-left: auto; margin-right: auto; }
 
@@ -26,6 +26,10 @@
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--color-principal); background: #fff; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255, 154, 86, 0.2), inset 0 2px 4px rgba(0,0,0,0.05); }
 .form-group input:hover, .form-group select:hover, .form-group textarea:hover { border-color: #ccc; background: #fff; }
 .form-group textarea { resize: vertical; min-height: 140px; line-height: 1.6; }
+
+/* Layout: fila de tres columnas para los primeros inputs */
+.form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+.form-group--full { grid-column: 1 / -1; }
 
 .send-button { display: flex; align-items: center; justify-content: center; gap: 0.8em; background: linear-gradient(135deg, var(--color-principal), var(--color-secundario)); color: #fff; border: none; border-radius: 12px; font-family: inherit; font-weight: bold; font-size: 1.1em; cursor: pointer; padding: 1em 2em; margin: 2em auto 0 auto; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(255, 154, 86, 0.3); position: relative; overflow: hidden; }
 .send-button::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; }
@@ -59,8 +63,8 @@
 .info-item p { display: none !important; }
 
 /* Responsive */
-@media (min-width: 1400px) { .contact-container { max-width: 1000px; padding: 3em; } }
-@media (max-width: 1024px) { .contact-container { max-width: 95%; margin: 1.5em auto; padding: 2.5em; } }
+@media (min-width: 1400px) { .contact-container { padding: 3em; } }
+@media (max-width: 1024px) { .contact-container { margin: 1.5em auto; padding: 2.5em; } }
 @media (max-width: 768px) {
   .contact-container { margin: 1em; padding: 1.8em; }
   .contact-container h2 { font-size: 2.5em; }
@@ -68,6 +72,7 @@
   .contact-options { grid-template-columns: 1fr; }
   .contact-form-section { padding: 2em 1.5em; }
   .contact-form-section h3 { font-size: 1.8em; }
+  .form-row { grid-template-columns: 1fr; }
   .form-group input, .form-group select, .form-group textarea { padding: 0.9em 1em; font-size: 1em; }
   .send-button { padding: 0.9em 1.8em; font-size: 1em; }
   .confirmation-content { margin: 2em 1em; padding: 2em 1.5em; }
@@ -84,7 +89,7 @@
 
 /* Compacto en escritorio: reduce ancho y espaciados del formulario */
 @media (min-width: 769px) {
-  .contact-container { max-width: 680px; }
+  /* Mantener ancho del .content-card; ajustar solo espaciados internos */
   .contact-intro { margin-bottom: 1.5em; }
 
   .contact-form-section { padding: 1.5em 1.25em; margin: 1.5em 0; }
