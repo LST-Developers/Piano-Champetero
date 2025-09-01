@@ -1,5 +1,5 @@
 // js/virtual.js — lógica de la batería para virtual.html
-import { initNav, setYearFooter, resumeOnUserGesture } from './common.js';
+import { loadHeader, setYearFooter, resumeOnUserGesture } from './common.js';
 
 // Audio + samplers (migrado desde main.js)
 export const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -168,7 +168,10 @@ export async function activateTomSampler(tomId) {
 
 document.addEventListener('DOMContentLoaded', async () => {
   const isMainPage = document.getElementById('tom-1') !== null;
-  await initNav();
+  // Load shared header (with fallback) and mark active nav link
+  await loadHeader();
+  const navVirtual = document.getElementById('nav-virtual');
+  if (navVirtual) navVirtual.classList.add('active');
   setYearFooter();
   resumeOnUserGesture();
 

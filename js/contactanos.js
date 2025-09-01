@@ -1,8 +1,8 @@
 // js/contactanos.js — lógica para la página de contacto
-import { initNav, setYearFooter, resumeOnUserGesture } from './common.js';
+import { loadHeader, setYearFooter, resumeOnUserGesture } from './common.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-  initNav();
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadHeader();
   setYearFooter();
   resumeOnUserGesture();
 

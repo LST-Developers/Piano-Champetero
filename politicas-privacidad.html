@@ -19,23 +19,23 @@
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Políticas de privacidad | Piano Champetero</title>
+  <title>Políticas de privacidad | Batería Champetera Virtual</title>
 
   <!-- Favicon -->
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <link rel="icon" type="image/png" href="/favicon.png" sizes="500x500">
 
   <meta name="description"
-    content="Políticas de privacidad de Piano Champetero. Información sobre datos recopilados, uso, cookies y proveedores terceros.">
-  <meta name="keywords" content="política de privacidad, privacidad, datos personales, champeta, piano champetero">
+    content="Políticas de privacidad de Batería Virtual Champetera. Información sobre datos recopilados, uso, cookies y proveedores terceros.">
+  <meta name="keywords" content="política de privacidad, privacidad, datos personales, champeta, batería virtual champetera, piano champetero virtual online">
   <meta name="author" content="Wilman Montenegro">
 
   <!-- Canonical -->
   <link rel="canonical" href="https://bateriachampetera.com/politicas-privacidad.html">
 
   <!-- Open Graph / Social Media -->
-  <meta property="og:title" content="Políticas de privacidad | Piano Champetero">
-  <meta property="og:description" content="Políticas de privacidad y uso de datos en Piano Champetero.">
+  <meta property="og:title" content="Políticas de privacidad | Batería Champetera Virtual">
+  <meta property="og:description" content="Políticas de privacidad y uso de datos en Batería Champetera Virtual.">
   <meta property="og:image" content="https://bateriachampetera.com/images/preview.jpg">
   <meta property="og:url" content="https://bateriachampetera.com/politicas-privacidad.html">
   <meta property="og:type" content="website">
@@ -62,15 +62,14 @@
   <!-- End Google Tag Manager (noscript) -->
 
   <header>
-    <h1 class="title">Batería Champetera Virtual</h1>
-    <div id="nav-container"></div>
+    <div id="header-container"></div>
   </header>
   <main>
     <section class="policy-container content-card">
       <h2 class="page-title">Políticas de privacidad</h2>
       <section>
       <h2>Introducción</h2>
-      <p>En Piano Champetero ("nosotros", "el sitio") respetamos tu privacidad y nos comprometemos a proteger tus datos
+      <p>En Batería Virtual Champetera ("nosotros", "el sitio") respetamos tu privacidad y nos comprometemos a proteger tus datos
         personales. Esta política explica qué datos recopilamos, por qué los recopilamos y qué hago
         s con ellos.</p>
     </section>
@@ -149,12 +148,9 @@
     </section>
   </main>
   <footer>
-    <p id="footer-year">© Piano Champetero <span id="year-footer"></span>. Todos los derechos reservados.</p>
+    <p id="footer-year">© Batería Champetera Virtual <span id="year-footer"></span>. Todos los derechos reservados.</p>
   </footer>
-  <script>
-    // cargar nav y actualizar footer
-    fetch('nav.html').then(r => r.text()).then(html => { const nav = document.getElementById('nav-container'); if (nav) nav.innerHTML = html; const y = document.getElementById('year-footer'); if (y) y.textContent = new Date().getFullYear(); const path = window.location.pathname.split('/').pop() || 'index.html'; document.querySelectorAll('#nav-container a[href]').forEach(link => { if (link.getAttribute('href') === path) link.classList.add('active'); }); });
-  </script>
+  <script type="module" src="js/politicas-privacidad.js"></script>
 </body>
 
 </html>
