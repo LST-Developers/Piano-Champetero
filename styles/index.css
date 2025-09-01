@@ -66,6 +66,13 @@ section li {
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
+/* Centrar el botón CTA en la página principal */
+.cta-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.2rem;
+}
+
 .faq-item {
   margin-bottom: 1.5em;
   padding: 1em;
