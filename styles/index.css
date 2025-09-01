@@ -1,53 +1,107 @@
-/* Estilos específicos de index.html (Batería) */
+/* Estilos específicos de index.html (Contenido) */
 
-/* ===================== ICONO EDITAR ===================== */
-.edit-icon {
-  position: absolute; top: 13%; right: 17%; transform: translate(20%, 20%);
-  font-size: 1.15em; background: none; border-radius: 0; padding: 0; cursor: pointer; z-index: 3; box-shadow: none;
+/* ===================== SECCIONES DE CONTENIDO ===================== */
+main {
+  padding: 2rem 1rem;
 }
-.edit-icon i { color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.45); border-radius: 50%; }
 
-/* ===================== VOLUMEN ===================== */
-.battery-volume-container { display: flex; flex-direction: column; align-items: center; margin-top: 1.5em; }
-.battery-volume { width: 180px; accent-color: var(--color-principal); }
-.battery-volume-label { margin-top: 0.5em; width: 100%; display: flex; justify-content: center; }
-#volume-percent { font-size: 1.2em; color: var(--color-marron); font-weight: bold; letter-spacing: 1px; }
-
-/* ===================== BATERÍA ===================== */
-.battery { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(3, auto); gap: 0; justify-items: center; align-items: center; box-sizing: border-box; padding: 0; }
-.battery-tom {
-  background-image: url('../images/tombos-bg.jpeg'); background-size: cover; background-position: center; background-repeat: no-repeat;
-  border: 3px solid rgba(255, 255, 255, 0.8); outline: none; border-radius: 50%; overflow: hidden;
-  transition: all 0.2s ease; position: relative; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 224, 102, 0.4);
-  box-sizing: border-box; margin: 0; padding: 0;
+section {
+  background: rgba(255,255,255,0.95);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  padding: 2.2em 2em 1.5em;
+  max-width: 900px;
+  width: 100%;
+  margin: 2rem auto;
+  box-sizing: border-box;
 }
-.battery-tom.active { transform: scale(1.28); box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 107, 107, 0.6); border-color: rgba(255, 224, 102, 1); }
-.edit-mode .battery-tom.active, .edit-mode .battery-tom:active { box-shadow: none !important; transform: none !important; border-color: rgba(255,255,255,0.8) !important; transition: none !important; }
-.battery-tom--small { width: 100px; height: 100px; min-width: 0; min-height: 0; }
-.battery-tom--medium { width: 150px; height: 150px; min-width: 0; min-height: 0; }
-.battery #tom-1 { grid-column: 1; grid-row: 1; justify-self: center; align-self: end; margin-bottom: -30%; }
-.battery #tom-2 { grid-column: 5; grid-row: 1; justify-self: center; align-self: end; margin-bottom: -30%; }
-.battery #tom-3 { grid-column: 1; grid-row: 2; justify-self: end; align-self: end; margin-right: -30%; }
-.battery #tom-4 { grid-column: 2; grid-row: 2; justify-self: end; margin-right: -40%; }
-.battery #tom-5 { grid-column: 4; grid-row: 2; justify-self: start; margin-left: -40%; }
-.battery #tom-6 { grid-column: 5; grid-row: 2; justify-self: start; align-self: end; margin-left: -30%; }
-.battery #tom-7 { grid-column: 2; grid-row: 3; margin-top: 5%; justify-self: end; align-self: start; }
-.battery #tom-8 { grid-column: 3; grid-row: 3; justify-self: center; align-self: start; }
-.battery #tom-9 { grid-column: 4; grid-row: 3; margin-top: 5%; }
-.battery-tom-key { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 2em; font-weight: bold; text-shadow: 2px 2px 8px #000; pointer-events: none; z-index: 2; }
 
-/* ===================== MODALES INDEX ===================== */
-.modal-edit-sampler, .modal-edit-key { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: none; justify-content: center; align-items: center; background: rgba(0,0,0,0.35); z-index: 1000; }
-.modal-edit-sampler .modal-content, .modal-edit-key .modal-content { background: #fff; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); padding: 2em 1.5em 1em 1.5em; min-width: 260px; max-width: 90vw; text-align: center; }
-.modal-edit-sampler h3, .modal-edit-key h3 { margin-top: 0; font-size: 1.2em; color: var(--color-marron); }
-.modal-edit-sampler ul.sampler-list { list-style: none; padding: 0; margin: 1em 0 1.5em 0; max-height: 220px; overflow-y: auto; text-align: left; }
-.modal-edit-sampler .sampler-item { padding: 0.5em 1em; border-radius: 6px; cursor: pointer; transition: background 0.15s, color 0.15s; font-size: 1.1em; color: #8B4513; }
-.modal-edit-sampler .sampler-item.selected, .modal-edit-sampler .sampler-item:hover { background: var(--color-principal); color: #fff; }
-.modal-edit-key input { font-size: 1.3em; padding: 0.4em 0.7em; margin: 1em 0; border-radius: 6px; border: 1px solid #ccc; outline: none; text-align: center; }
+section h2 {
+  color: var(--color-marron);
+  font-size: 2em;
+  margin-bottom: 1em;
+  text-align: center;
+  font-weight: 700;
+}
 
-/* ===================== BOTONES INDEX ===================== */
-.edit-keys-btn, .edit-samplers-btn, .modal-actions button { background: var(--color-principal); color: #fff; border: none; border-radius: var(--borde-radius); font-family: inherit; font-weight: bold; cursor: pointer; transition: background 0.2s, box-shadow 0.2s, color 0.2s; box-shadow: var(--sombra-btn); font-size: 1rem; padding: 0.45em 1em; }
-.edit-keys-btn:hover, .edit-samplers-btn:hover, .edit-keys-btn.edit-mode-active, .edit-samplers-btn.edit-mode-active, .modal-actions button:hover { background: var(--color-secundario); color: #fff; box-shadow: var(--sombra-btn-hover); }
-.modal-actions { display: flex; gap: 1em; justify-content: center; }
-.modal-actions button { padding: 0.5em 1.2em; margin-bottom: 0; font-size: 1rem; }
-.edit-buttons-container { display: flex; gap: 12px; justify-content: center; }
+section p {
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 1em;
+  font-size: 1.1em;
+}
+
+section ul {
+  list-style: none;
+  padding: 0;
+  margin: 1em 0;
+}
+
+section li {
+  background: rgba(255, 154, 86, 0.1);
+  padding: 0.8em 1em;
+  margin-bottom: 0.5em;
+  border-radius: 8px;
+  border-left: 4px solid var(--color-principal);
+  font-size: 1em;
+  color: #333;
+}
+
+.cta-button {
+  display: inline-block;
+  background: var(--color-principal);
+  color: #fff;
+  padding: 0.8em 2em;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.1em;
+  transition: background 0.3s, box-shadow 0.3s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-top: 1em;
+}
+
+.cta-button:hover {
+  background: var(--color-secundario);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.faq-item {
+  margin-bottom: 1.5em;
+  padding: 1em;
+  background: rgba(255, 224, 102, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 154, 86, 0.2);
+}
+
+.faq-item h3 {
+  color: var(--color-marron);
+  margin-bottom: 0.5em;
+  font-size: 1.2em;
+}
+
+.faq-item p {
+  margin: 0;
+  color: #555;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 768px) {
+  section {
+    padding: 1.5em 1em;
+    margin: 1rem auto;
+  }
+
+  section h2 {
+    font-size: 1.8em;
+  }
+
+  section p {
+    font-size: 1em;
+  }
+
+  .cta-button {
+    padding: 0.7em 1.5em;
+    font-size: 1em;
+  }
+}

@@ -1,4 +1,4 @@
-// js/index.js — lógica de la batería (antes en main.js)
+// js/virtual.js — lógica de la batería para virtual.html
 import { initNav, setYearFooter, resumeOnUserGesture } from './common.js';
 
 // Audio + samplers (migrado desde main.js)
