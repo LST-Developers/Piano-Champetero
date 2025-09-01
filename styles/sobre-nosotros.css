@@ -1,5 +1,5 @@
 /* Estilos específicos de sobre-nosotros.html */
 
-.about-us { max-width: 700px; margin: 2.5em auto 2em auto; background: rgba(255,255,255,0.85); border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); padding: 2.2em 2em 1.5em 2em; text-align: center; color: #8B4513; font-family: 'Roboto', Arial, sans-serif; }
+.about-us { max-width: 700px; margin: 2.5em auto 2em auto; padding: 2.2em 2em 1.5em 2em; text-align: center; color: #8B4513; }
 .about-us h2 { font-family: 'Seaweed Script', cursive; font-size: 2.7em; color: var(--color-principal); margin-bottom: 0.5em; margin-top: 0; letter-spacing: 1px; }
 .about-us p { font-size: 1.25em; line-height: 1.7; margin: 0; color: #8B4513; font-weight: 400; }

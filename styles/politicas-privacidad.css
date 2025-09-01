@@ -1,0 +1,74 @@
+/* Estilos para politicas-privacidad.html utilizando el mismo patrón visual que otras páginas */
+
+.policy-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2.2em 2em 1.5em 2em;
+  color: #8B4513;
+  text-align: left;
+  /* Anular el align-items:center definido en el selector global `main` */
+  align-items: stretch;
+}
+
+.policy-container .page-title {
+  font-family: 'Seaweed Script', cursive;
+  font-size: 2.7em;
+  color: var(--color-principal);
+  margin-bottom: 0.5em;
+  margin-top: 0;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.policy-container h2 {
+  font-family: 'Seaweed Script', cursive;
+  font-size: 1.6em;
+  color: var(--color-marron);
+  margin-top: 1rem;
+}
+
+.policy-container p,
+.policy-container li {
+  font-size: 1.05em;
+  line-height: 1.7;
+  color: #5a3f2a;
+  text-align: left;
+}
+
+.policy-container section {
+  width: 100%;
+}
+
+.policy-container ul {
+  margin: 0 0 1rem 0;
+  padding-left: 1.25rem;
+  /* espacio para viñetas */
+  list-style-type: disc;
+  list-style-position: outside;
+}
+
+.policy-container a {
+  color: var(--color-principal);
+  text-decoration: underline;
+}
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+  .title {
+    font-size: 3.2rem;
+  }
+
+  .policy-container {
+    margin: 1rem;
+    padding: 1.2rem;
+    border-radius: 12px;
+  }
+
+  .policy-container .page-title {
+    font-size: 2.2rem;
+  }
+
+  .policy-container h2 {
+    font-size: 1.2rem;
+  }
+}
